@@ -1,7 +1,14 @@
 # PyCOM
 
 Python library for communicating with iCOM radios using CI-V.
-Developed for and only tested on IC-7300.
+
+## Compatible devices
+
+- IC-7300 (fw: 1.42)
+
+## Sample code
+
+Some sample commands are available in the `main.py` file
 
 ## Original project
 
