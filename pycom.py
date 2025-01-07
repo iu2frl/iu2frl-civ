@@ -287,7 +287,7 @@ class PyCom:
         reply = self._send_command(b"\x15\x05")
         return reply
 
-#TODO: test all methods starting from this one
+    # TODO: test all methods starting from this one
 
     def set_operating_mode(
         self, mode: OperatingMode, filter: SelectedFilter = SelectedFilter.FIL1
@@ -714,17 +714,293 @@ class PyCom:
 
     def set_rtty_log_frequency_stamp(self, enable: bool) -> bool:
         """
-        Imposta se la frequenza deve essere inclusa nel log RTTY.
+        Sets the RTTY frequency stamp.
 
         Args:
-            enable: True per includere la frequenza, False per non includerla.
+            enable (bool): True to enable, False to disable.
 
         Returns:
-            True se il comando è stato inviato con successo, False altrimenti.
+            bool: True if the command was successful, False otherwise.
         """
-        data = b'\x01' if enable else b'\x00'
-        reply = self._send_command(b'\x1a\x05\x01\x77', data=data)
-        if len(reply) > 2:
-            return True
-        return False
-    
+        value = 1 if enable else 0
+        reply = self._send_command(b"\x1a\x05\x01\x77", data=bytes([value]))
+        return len(reply) > 0
+
+    def set_auto_monitor_voice_memory(self, enable: bool) -> bool:
+        """
+        Sets the auto monitor function when transmitting a recorded voice memory.
+
+        Args:
+            enable (bool): True to enable, False to disable.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        value = 1 if enable else 0
+        reply = self._send_command(b"\x1a\x05\x01\x80", data=bytes([value]))
+        return len(reply) > 0
+
+    def set_repeat_interval_voice_memory(self, interval: int) -> bool:
+        """
+        Sets the repeat interval to transmit recorded voice audio.
+
+        Args:
+            interval (int): Repeat interval in seconds (1-15).
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+           ValueError: If the interval is not within the valid range (1 to 15)
+        """
+        if not (1 <= interval <= 15):
+            raise ValueError("Interval must be between 1 and 15 seconds")
+        reply = self._send_command(b"\x1a\x05\x01\x81", data=bytes([interval]))
+        return len(reply) > 0
+
+    def set_qso_recorder_mode(self, tx_rx: bool) -> bool:
+        """
+        Sets the recording mode for QSO recorder (TX&RX or RX Only).
+
+        Args:
+            tx_rx (bool): True for TX & RX, False for RX only.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        value = 0 if tx_rx else 1
+        reply = self._send_command(b"\x1a\x05\x01\x82", data=bytes([value]))
+        return len(reply) > 0
+
+    def set_qso_recorder_tx_audio(self, mic_audio: bool) -> bool:
+        """
+        Sets the recording TX audio source for QSO recorder (Microphone audio or TX monitor audio).
+
+        Args:
+            mic_audio (bool): True for Microphone audio, False for TX monitor audio.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        value = 0 if mic_audio else 1
+        reply = self._send_command(b"\x1a\x05\x01\x83", data=bytes([value]))
+        return len(reply) > 0
+
+    def set_qso_recorder_squelch_relation(self, always_record: bool) -> bool:
+        """
+        Sets the squelch relation to recording RX audio for QSO recorder.
+
+        Args:
+            always_record (bool): True to always record, False for Squelch Auto.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        value = 0 if always_record else 1
+        reply = self._send_command(b"\x1a\x05\x01\x84", data=bytes([value]))
+        return len(reply) > 0
+
+    def set_qso_record_file_split(self, enable: bool) -> bool:
+        """
+        Sets the QSO record file split function.
+
+        Args:
+            enable (bool): True to enable, False to disable.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        value = 1 if enable else 0
+        reply = self._send_command(b"\x1a\x05\x01\x85", data=bytes([value]))
+        return len(reply) > 0
+
+    def set_ptt_automatic_recording(self, enable: bool) -> bool:
+        """
+        Sets the PTT automatic recording function.
+
+        Args:
+            enable (bool): True to enable, False to disable.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        value = 1 if enable else 0
+        reply = self._send_command(b"\x1a\x05\x01\x86", data=bytes([value]))
+        return len(reply) > 0
+
+    def set_ptt_automatic_recording_rx_audio(self, rx_audio_time: int) -> bool:
+        """
+        Sets the RX audio recording status for PTT Automatic Recording function.
+
+         Args:
+             rx_audio_time (int): The RX audio recording time.
+             0: OFF (records no RX audio)
+             1: Records the RX audio just before 5 sec.
+             2: Records the RX audio just before 10 sec.
+             3: Records the RX audio just before 15 sec.
+
+         Returns:
+             bool: True if the command was successful, False otherwise.
+
+         Raises:
+            ValueError: If the value is not between 0 and 3
+        """
+        if not (0 <= rx_audio_time <= 3):
+            raise ValueError("Value must be between 0 and 3")
+        reply = self._send_command(b"\x1a\x05\x01\x87", data=bytes([rx_audio_time]))
+        return len(reply) > 0
+
+    def set_qso_play_skip_time(self, skip_time: int) -> bool:
+        """
+         Sets the QSO Play skip time
+
+         Args:
+             skip_time (int): The skip time in seconds
+                0: 3 sec.
+                1: 5 sec.
+                2: 10 sec.
+                3: 30 sec.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+             ValueError: If the skip time is not within the valid range
+        """
+        if not (0 <= skip_time <= 3):
+            raise ValueError("Value must be between 0 and 3")
+        reply = self._send_command(b"\x1a\x05\x01\x88", data=bytes([skip_time]))
+        return len(reply) > 0
+
+    def set_nb_depth(self, depth: int) -> bool:
+        """
+        Sets the NB depth.
+
+        Args:
+            depth (int): The NB depth (1-10).
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+            ValueError: If the depth is not within the valid range (1 to 10)
+        """
+        if not (1 <= depth <= 10):
+            raise ValueError("Depth must be between 1 and 10")
+        reply = self._send_command(b"\x1a\x05\x01\x89", data=bytes([depth - 1]))
+        return len(reply) > 0
+
+    def set_nb_width(self, width: int) -> bool:
+        """
+        Sets the NB width.
+
+        Args:
+            width (int): The NB width (1-100).
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+            ValueError: If the width is not within the valid range (1 to 100)
+        """
+        if not (1 <= width <= 100):
+            raise ValueError("Width must be between 1 and 100")
+
+        width_bytes = self._encode_2_bytes_value(width - 1)
+        reply = self._send_command(b"\x1a\x05\x01\x90", data=width_bytes)
+        return len(reply) > 0
+
+    def set_vox_delay(self, delay: int) -> bool:
+        """
+        Sets the VOX delay.
+
+        Args:
+             delay (int): The VOX delay in tenths of a second (0-20, representing 0.0 to 2.0 seconds).
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+             ValueError: If the delay is not within the valid range (0 to 20).
+        """
+        if not (0 <= delay <= 20):
+            raise ValueError("Delay must be between 0 and 20")
+        reply = self._send_command(b"\x1a\x05\x01\x91", data=bytes([delay]))
+        return len(reply) > 0
+
+    def set_vox_voice_delay(self, voice_delay: int) -> bool:
+        """
+        Sets the VOX voice delay.
+
+        Args:
+            voice_delay (int): The VOX voice delay.
+                0: OFF
+                1: Short
+                2: Mid.
+                3: Long
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+         Raises:
+            ValueError: If the value is not between 0 and 3
+        """
+        if not (0 <= voice_delay <= 3):
+            raise ValueError("Value must be between 0 and 3")
+        reply = self._send_command(b"\x1a\x05\x01\x92", data=bytes([voice_delay]))
+        return len(reply) > 0
+
+    def set_mf_band_attenuator(self, enable: bool) -> bool:
+        """
+        Sets the MF band attenuator setting.
+
+        Args:
+            enable (bool): True to enable, False to disable.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        value = 1 if enable else 0
+        reply = self._send_command(b"\x1a\x05\x01\x93", data=bytes([value]))
+        return len(reply) > 0
+
+    def set_data_mode(self, enable: bool, filter: int = 1) -> bool:
+        """
+        Sets the data mode.
+
+        Args:
+            enable (bool): True to enable, False to disable.
+            filter (int, optional): The filter to select (1-3). Defaults to 1
+
+        Returns:
+             bool: True if the command was successful, False otherwise.
+
+        Raises:
+             ValueError: If the filter is not within the valid range (1 to 3)
+        """
+        if not (1 <= filter <= 3):
+            raise ValueError("Filter must be between 1 and 3")
+
+        value = 1 if enable else 0
+        reply = self._send_command(b"\x1a\x06", data=bytes([value, filter]))
+        return len(reply) > 0
+
+    def set_ip_plus_function(self, enable: bool) -> bool:
+        """
+        Sets the IP+ function setting.
+
+        Args:
+            enable (bool): True to enable, False to disable.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        value = 1 if enable else 0
+        reply = self._send_command(b"\x1a\x07", data=bytes([value]))
+        return len(reply) > 0
+
+    def _encode_2_bytes_value(self, value: int) -> bytes:
+        """
+        Encodes a integer value into two bytes (little endian)
+        """
+        return value.to_bytes(2, byteorder="little")
