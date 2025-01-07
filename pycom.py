@@ -15,11 +15,13 @@ class OperatingMode(Enum):
     RTTYR=8
 
 class SelectedFilter(Enum):
+    """The filter being selected on the transceiver"""
     FIL1 = 1
     FIL2 = 2
     FIL3 = 3
 
 class SquelchStatus(Enum):
+    """Status of the squelch of the transceiver"""
     CLOSED = 0
     OPEN   = 1
 
@@ -54,7 +56,7 @@ class PyCom:
         self._ser.write(command_string)
         # Our cable reads what we send, so we have to remove this from the buffer first
         reply = self._ser.read_until(expected=b'\xfd')
-        if reply == command_string:    
+        if reply == command_string:
             if self._debug:
                 print(f"Received echo: {self._bytes_to_string(reply)} (length: {len(reply)})")
             # Now we are reading replies
