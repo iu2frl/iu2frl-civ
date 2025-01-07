@@ -208,6 +208,18 @@ class PyCom:
         if len(reply) == 9:
             return self._bytes_to_int(reply[6], reply[7])
         return -1
+    
+    def read_nb_level(self) -> int:
+        """
+        Read the NB level
+        
+        0: min
+        255: max
+        """
+        reply = self._send_command(b'\x14\x12')
+        if len(reply) == 9:
+            return self._bytes_to_int(reply[6], reply[7])
+        return -1
 
     def read_smeter(self) -> int:
         """
