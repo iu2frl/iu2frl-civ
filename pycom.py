@@ -14,6 +14,11 @@ class OperatingMode(Enum):
     CWR = 7
     RTTYR=8
 
+class SelectedFilter(Enum):
+    FIL1 = 1
+    FIL2 = 2
+    FIL3 = 3
+
 class SquelchStatus(Enum):
     CLOSED = 0
     OPEN   = 1
@@ -23,7 +28,7 @@ class PyCom:
     _ser: serial.Serial # Serial port
     _debug: bool # Debug mode
     _address: str # Hexadecimal address of the radio transceiver
-    
+
     def __init__(self, address: str, port = "/dev/ttyUSB0", baudrate: int = 19200, debug: bool = False):
         self._ser = serial.Serial(port, baudrate, timeout=1)
         self._debug = debug
@@ -123,13 +128,15 @@ class PyCom:
         except:
             return -1
     
-    def read_operating_mode(self) -> int:
+    def read_operating_mode(self) -> Tuple[str, str]:
         """Read the operating mode"""
-        try:
-            reply = self._send_command(b'\x04')
-            return reply
-        except:
-            return -1
+        reply = self._send_command(b'\x04')
+        if len(reply) == 8:
+            mode = OperatingMode(int(reply[5:6].hex())).name
+            fil = SelectedFilter(int(reply[6:7].hex())).name
+            return [mode, fil]
+        else:
+            return ["ERR", "ERR"]
 
     def send_operating_frequency(self, frequency_hz: int) -> bool:
         """Send the operating frequency"""
