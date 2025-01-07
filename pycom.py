@@ -80,20 +80,16 @@ class PyCom:
         frequency_bcd = ''.join(f"{byte:02X}" for byte in reversed_bcd)
         return int(frequency_bcd)  # Convert to integer (frequency in Hz)
 
-    def _encode_frequency(self, frequency):
-        """Convert the frequency to BCD in little-endian format"""
-        # First, convert the frequency to an integer
-        freq_int = int(frequency)
-        
-        # Split the frequency into the higher and lower parts
-        high_part = (freq_int >> 16) & 0xFF
-        mid_part = (freq_int >> 8) & 0xFF
-        low_part = freq_int & 0xFF
-        
-        # Pack the frequency into 5 bytes
-        byte_data = bytes([low_part, mid_part, high_part, high_part >> 8, 0])
-        
-        return byte_data
+    def _encode_frequency(self, frequency) -> bytes:
+        """Convert the frequency to the CI-V representation"""
+        frequency_str = str(frequency).rjust(10, '0')
+        inverted_freq = frequency_str[::-1]
+        hex_list = [f"0x{inverted_freq[1]}{inverted_freq[0]}"]
+        hex_list.append(f"0x{inverted_freq[3]}{inverted_freq[2]}")
+        hex_list.append(f"0x{inverted_freq[5]}{inverted_freq[4]}")
+        hex_list.append(f"0x{inverted_freq[7]}{inverted_freq[6]}")
+        hex_list.append(f"0x{inverted_freq[9]}{inverted_freq[8]}")
+        return bytes([int(hx, 16) for hx in hex_list])
 
     def power_on(self):
         """Power on the radio transceiver"""
