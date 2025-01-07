@@ -50,18 +50,18 @@ class PyCom:
         # In the command, the 0xFE 0xFE is the preamble, then the transceiver address, 0xE0 is the controller address, and 0xFD is the terminator
         command_string = preamble + b'\xfe\xfe' + bytes([int(self._address, 16)]) + b'\xe0' + command + data + b'\xfd'
         if self._debug:
-            print(f"Sending command: {command_string} (length: {len(command_string)})")
+            print(f"Sending command: {self._bytes_to_string(command_string)} (length: {len(command_string)})")
         self._ser.write(command_string)
         # Our cable reads what we send, so we have to remove this from the buffer first
         reply = self._ser.read_until(expected=b'\xfd')
         if reply == command_string:    
             if self._debug:
-                print(f"Received echo: {reply} (length: {len(reply)})")
+                print(f"Received echo: {self._bytes_to_string(reply)} (length: {len(reply)})")
             # Now we are reading replies
             reply = self._ser.read_until(expected=b'\xfd')
         # Print some debug information
         if self._debug:
-            print(f"Received reply: {reply} (length: {len(reply)})")
+            print(f"Received reply: {self._bytes_to_string(reply)} (length: {len(reply)})")
             if len(reply) > 2:
                 if reply[len(reply)-2] == 250: # 0xFA
                     print(f"Reply status: NG ({reply[len(reply)-2]})")
@@ -90,6 +90,14 @@ class PyCom:
         hex_list.append(f"0x{inverted_freq[7]}{inverted_freq[6]}")
         hex_list.append(f"0x{inverted_freq[9]}{inverted_freq[8]}")
         return bytes([int(hx, 16) for hx in hex_list])
+
+    def _bytes_to_string(self, bytes_array: bytearray) -> str:
+        """Convert a byte array to a string"""
+        return '0x' + ' 0x'.join(f"{byte:02X}" for byte in bytes_array)
+    
+    def _bytes_to_int(self, first_byte: bytes, second_byte: bytes) -> int:
+        """Convert a byte array to an integer"""
+        return (int(first_byte) * 100) + int(f"{second_byte:02X}")
 
     def power_on(self):
         """Power on the radio transceiver"""
@@ -153,12 +161,79 @@ class PyCom:
         else:
             return False
 
+    def read_af_volume(self) -> int:
+        """
+        Read the AF volume
+        
+        0: min
+        255: max
+        """
+        reply = self._send_command(b'\x14\x01')
+        if len(reply) == 9:
+            return self._bytes_to_int(reply[6], reply[7])
+        return -1
+    
+    def read_rf_gain(self) -> int:
+        """
+        Read the RF gain
+        
+        0: min
+        255: max
+        """
+        reply = self._send_command(b'\x14\x02')
+        if len(reply) == 9:
+            return self._bytes_to_int(reply[6], reply[7])
+        return -1
+    
+    def read_squelch_level(self) -> int:
+        """
+        Read the squelch level
+        
+        0: min
+        255: max
+        """
+        reply = self._send_command(b'\x14\x03')
+        if len(reply) == 9:
+            return self._bytes_to_int(reply[6], reply[7])
+        return -1
+    
+    def read_nr_level(self) -> int:
+        """
+        Read the NR level
+        
+        0: min
+        255: max
+        """
+        reply = self._send_command(b'\x14\x06')
+        if len(reply) == 9:
+            return self._bytes_to_int(reply[6], reply[7])
+        return -1
+
+    def read_smeter(self) -> int:
+        """
+        Read the S-meter value
+        
+        TODO: test if properly working
+        """
+        reply = self._send_command(b'\x15\x02')
+        if len(reply) == 9:
+            return int(reply[6:8].hex(), 16)
+        return -1
+
     def read_squelch_status(self):
-        """Read the squelch status"""
+        """
+        Read noise or S-meter squelch status
+        
+        TODO: test if properly working
+        """
         reply = self._send_command(b'\x15\x01')
         return reply
 
     def read_squelch_status2(self):
-        """Read the squelch status"""
+        """
+        Read various squelch function’s status
+        
+        TODO: test if properly working
+        """
         reply = self._send_command(b'\x15\x05')
         return reply
