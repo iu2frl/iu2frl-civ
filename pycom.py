@@ -225,11 +225,16 @@ class PyCom:
         """
         Read the S-meter value
         
+        0: min
+        255: max
+        
+        0000=S0, 0120=S9, 0241=S9+60dB
+        
         TODO: test if properly working
         """
         reply = self._send_command(b'\x15\x02')
         if len(reply) == 9:
-            return int(reply[6:8].hex(), 16)
+            return self._bytes_to_int(reply[6], reply[7])
         return -1
 
     def read_squelch_status(self):
