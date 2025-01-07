@@ -1,11 +1,6 @@
-from abc import ABCMeta
-from typing import Tuple, Any
-from enum import Enum, IntFlag
-from datetime import datetime
-from collections import namedtuple
-from collections.abc import Callable
+from typing import Tuple
+from enum import Enum
 import serial
-import struct
 
 class OperatingMode(Enum):
     """Operating mode of the radio transceiver"""
@@ -41,7 +36,7 @@ class PyCom:
             print(f"Opened port: {self._ser.name}")
             print(f"Baudrate: {self._ser.baudrate} bps")
 
-    def _send_command(self, command: bytes, data=b'', preamble=b'') -> Tuple[int, int, bytes]:
+    def _send_command(self, command: bytes, data=b'', preamble=b'') -> bytes:
         """Send a command to the radio transceiver"""
         if command is None or not isinstance(command, bytes):
             raise ValueError("Command must be a non-empty byte string")
@@ -72,7 +67,7 @@ class PyCom:
             raise ValueError("No reply received")
         return reply
 
-    def _decode_frequency_bcd(self, bcd_bytes) -> int:
+    def _decode_frequency(self, bcd_bytes) -> int:
         """Decode BCD-encoded frequency bytes to a frequency in Hz"""
         # Reverse the bytes for little-endian interpretation
         reversed_bcd = bcd_bytes[::-1]
@@ -112,16 +107,19 @@ class PyCom:
         """Power off the radio transceiver"""
         self._send_command(b'\x18\x00')
 
-    def read_transceiver_id(self):
-        """Read the transceiver ID"""
+    def read_transceiver_id(self) -> str:
+        """Read the transceiver address"""
         reply = self._send_command(b'\x19\x00')
-        return reply
+        if len(reply) > 0:
+            value = reply[-2:-1]
+            return '0x' + value.hex().upper()
+        return -1
 
     def read_operating_frequency(self):
         """Read the operating frequency"""
         try:
             reply = self._send_command(b'\x03')
-            return self._decode_frequency_bcd(reply[5:10])
+            return self._decode_frequency(reply[5:10])
         except:
             return -1
     
