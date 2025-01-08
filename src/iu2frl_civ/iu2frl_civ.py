@@ -1046,14 +1046,14 @@ class Device:
                         f"(received: {self._bytes_to_string(source_transceiver)} -> {self._bytes_to_string(target_controller)} " + 
                         f"but we are using: {self._bytes_to_string(self.transceiver_address)} -> {self._bytes_to_string(self.controller_address)})")
                     i -= 1 # Decrement cycles to ignore messages not for us
-                # Check the return code
-                elif reply_code == bytes.fromhex("FB"):  # 0xFB (good)
+                # Check the return code (0xFA is only returned in case of error)
+                elif reply_code == bytes.fromhex("FA"):  # 0xFA (not good)
+                    logger.debug(f"Reply status: NG ({self._bytes_to_string(reply_code)}")
+                    raise CivCommandException("Reply status: NG", reply_code)
+                else:
                     logger.debug("Reply status: OK (0xFB)")
                     valid_reply = True
                     break
-                else:
-                    logger.debug(f"Reply status: NG ({self._bytes_to_string(reply_code)}")
-                    raise CivCommandException("Reply status: NG", reply_code)
             # Check if the respose was empty (timeout)
             else:
                 logger.debug(f"Serial communication timeout ({i+1}/{self._read_attempts})")
