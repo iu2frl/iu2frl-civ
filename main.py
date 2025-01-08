@@ -3,8 +3,8 @@ import pycom
 
 def main():
     """Connect to the transceiver and get some data"""
-    radio = pycom.PyCom("0x94", port="COM10", debug=True)
-    print(f"- Connected to the transceiver at {radio._ser.port} with baudrate {radio._ser.baudrate}bps with debug mode {radio._debug}")
+    radio = pycom.PyCom("0x94", port="/dev/tty", debug=True)
+    print(f"- Connected to the transceiver at {radio._ser.port} with baudrate {radio._ser.baudrate}bps")
     print ("- Turning on the transceiver")
     radio.power_on()
     print(f"- Current frequency: {radio.read_operating_frequency()}Hz")

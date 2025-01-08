@@ -1,6 +1,12 @@
 from typing import Tuple
 from enum import Enum
 import serial
+import sys
+import logging
+
+
+sys.tracebacklimit = 0
+logger = logging.getLogger(__name__)
 
 
 class OperatingMode(Enum):
@@ -32,77 +38,119 @@ class SquelchStatus(Enum):
     OPEN = 1
 
 
+class CivCommandException(BaseException):
+    """
+    This exception is generated when the CI-V response is NG 
+    """
+    message: str
+    error_code: bytes
+
+    def __init__(self, message, error_code):
+        self.message = message
+        self.error_code = error_code
+    def __str__(self):
+        return f"{self.message} (0x{self.error_code:02X})"
+
+class CivTimeoutException(BaseException):
+    """
+    This exception is generated when the CI-V read gets over the timeout
+    """
+    pass
+
+
 class PyCom:
     """Create a PyCom object to interact with the radio transceiver"""
 
-    _ser: serial.Serial  # Serial port
-    _debug: bool  # Debug mode
-    _address: str  # Hexadecimal address of the radio transceiver
+    _ser: serial.Serial  # Serial port object
+    _read_attempts: int # How many attempts before giving up the read process
+    transceiver_address: str  # Hexadecimal address of the radio transceiver
+    controller_address: str # Hexadecimal address of the controller (this code)
 
     def __init__(
         self,
-        address: str,
-        port="/dev/ttyUSB0",
+        radio_address: str,
+        port = "/dev/ttyUSB0",
         baudrate: int = 19200,
-        debug: bool = False,
-    ):
-        self._ser = serial.Serial(port, baudrate, timeout=1)
-        self._debug = debug
-        if isinstance(address, str) and str(address).startswith("0x"):
-            self._address = address[2:]
+        debug = False,
+        controller_address = "0xE0",
+        timeout = 1,
+        attempts = 3):
+        self._ser = serial.Serial(port, baudrate, timeout = timeout)
+        self._read_attempts = attempts
+        # Validate the transceiver address
+        if isinstance(radio_address, str) and str(radio_address).startswith("0x"):
+            self.transceiver_address = radio_address[2:]
         else:
-            raise ValueError("Address must be in hexadecimal format (0x00)")
-        self._address = address
-        if self._debug:
-            print(f"Opened port: {self._ser.name}")
-            print(f"Baudrate: {self._ser.baudrate} bps")
+            raise ValueError("Transceiver address must be in hexadecimal format (0x00)")
+        self.transceiver_address = radio_address
+        # Validate the controller address
+        if isinstance(controller_address, str) and str(controller_address).startswith("0x"):
+            self.controller_address = controller_address[2:]
+        else:
+            raise ValueError("Controller address must be in hexadecimal format (0x00)")
+        # Print some information if debug is enabled
+        if debug:
+            logging.basicConfig(level=logging.DEBUG)
+        logger.debug(f"Opened port: {self._ser.name}")
+        logger.debug(f"Baudrate: {self._ser.baudrate} bps")
 
     def _send_command(self, command: bytes, data=b"", preamble=b"") -> bytes:
         """Send a command to the radio transceiver"""
         if command is None or not isinstance(command, bytes):
             raise ValueError("Command must be a non-empty byte string")
         if len(command) not in [1, 2]:
-            raise ValueError(
-                "Command must be 1 or 2 bytes long (command with an optional subcommand)"
-            )
-        # In the command, the 0xFE 0xFE is the preamble, then the transceiver address, 0xE0 is the controller address, and 0xFD is the terminator
+            raise ValueError("Command must be 1 or 2 bytes long (command with an optional subcommand)")
+        # The command is composed of:
+        # - 0xFE 0xFE is the preamble
+        # - the transceiver address
+        # - the controller address
+        # - 0xFD is the terminator
         command_string = (
             preamble
             + b"\xfe\xfe"
-            + bytes([int(self._address, 16)])
-            + b"\xe0"
+            + bytes([int(self.transceiver_address, 16)])
+            + bytes([int(self.controller_address, 16)])
             + command
             + data
             + b"\xfd"
         )
-        if self._debug:
-            print(
-                f"Sending command: {self._bytes_to_string(command_string)} (length: {len(command_string)})"
-            )
+        logger.debug(f"Sending command: {self._bytes_to_string(command_string)} (length: {len(command_string)})")
+        # Send the command to the COM port
         self._ser.write(command_string)
-        # Our cable reads what we send, so we have to remove this from the buffer first
-        reply = self._ser.read_until(expected=b"\xfd")
-        if reply == command_string:
-            if self._debug:
-                print(
-                    f"Received echo: {self._bytes_to_string(reply)} (length: {len(reply)})"
-                )
-            # Now we are reading replies
+        # Read the response from the transceiver
+        reply = ""
+        valid_reply = False
+        for i in range(self._read_attempts):
+            # Read data from the serial port until the terminator byte
             reply = self._ser.read_until(expected=b"\xfd")
-        # Print some debug information
-        if self._debug:
-            print(
-                f"Received reply: {self._bytes_to_string(reply)} (length: {len(reply)})"
-            )
-            if len(reply) > 2:
-                if reply[len(reply) - 2] == 250:  # 0xFA
-                    print(f"Reply status: NG ({reply[len(reply)-2]})")
+            # Check if we received an echo message
+            if reply == command_string:
+                i -= 1 # Decrement cycles as it is just the echo back
+                logger.debug(f"Received echo: {self._bytes_to_string(reply)} (length: {len(reply)})")
+            # Check the response
+            elif len(reply) > 2:
+                target_controller = reply[2] # Target of the reply from the transceiver
+                reply_code = reply[len(reply) - 2] # Command reply status code
+                # Check if the response is for us
+                if target_controller == int(self.controller_address):
+                    logger.debug("Ignoring message which is not for us")
+                    i -= 1 # Decrement cycles to ignore messages not for us
+                # Check the return code
+                elif reply_code == 251:  # 0xFB (good)
+                    logger.debug("Reply status: OK (0xFB)")
+                    valid_reply = True
+                    break
                 else:
-                    print("Reply status: OK")
-        # Check if any reply from the transceiver
-        if len(reply) < 3:
-            raise ValueError("No reply received")
-        return reply
+                    logger.debug(f"Reply status: NG ({self._bytes_to_string(reply_code)}")
+                    raise CivCommandException("Reply status: NG", reply_code)
+            # Check if the respose was empty (timeout)
+            else:
+                logger.debug(f"Serial communication timeout ({i+1}/{self._read_attempts})")
+        # Return the result to the user
+        if not valid_reply:
+            raise CivTimeoutException(f"Communication timeout occurred after {i} attempts")
+        else:
+            return reply
 
     def _decode_frequency(self, bcd_bytes) -> int:
         """Decode BCD-encoded frequency bytes to a frequency in Hz"""
