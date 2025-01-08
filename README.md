@@ -1,4 +1,4 @@
-# PyCOM
+# IU2FRL ICOM CI-V Library
 
 Python library for communicating with iCOM radios using CI-V.
 
@@ -8,7 +8,7 @@ Python library for communicating with iCOM radios using CI-V.
 
 ## Sample code
 
-Some sample commands are available in the `main.py` file
+Some sample commands are available in the `tests/main.py` file
 
 ## Original project
 
