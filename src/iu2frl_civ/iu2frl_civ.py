@@ -38,6 +38,38 @@ class SquelchStatus(Enum):
     CLOSED = 0
     OPEN = 1
 
+class ScanMode(Enum):
+    """Scan mode of the transceiver"""
+    
+    STOP = b"\x00"  # Stop scan
+    MEMORY = b"\x01"  # Programmed/memory scan start
+    PROGRAMMED = b"\x02"  # Programmed scan start
+    F = b"\x03"  # F scan start
+    FINE_PROGRAMMED = b"\x12"  # Fine programmed scan start
+    FINE_FREQUENCY = b"\x13"  # Fine ∂F scan start
+    MEMORY_SCAN = b"\x22"  # Memory scan start
+    SELECT_MEMORY = b"\x23"  # Select memory scan start
+    SELECT_DF_SPAN_5KHZ = b"\xA1"  # Select ∂F scan span ±5 kHz
+    SELECT_DF_SPAN_10KHZ = b"\xA2"  # Select ∂F scan span ±10 kHz
+    SELECT_DF_SPAN_20KHZ = b"\xA3"  # Select ∂F scan span ±20 kHz
+    SELECT_DF_SPAN_50KHZ = b"\xA4"  # Select ∂F scan span ±50 kHz
+    SELECT_DF_SPAN_100KHZ = b"\xA5"  # Select ∂F scan span ±100 kHz
+    SELECT_DF_SPAN_500KHZ = b"\xA6"  # Select ∂F scan span ±500 kHz
+    SELECT_DF_SPAN_1MHZ = b"\xA7"  # Select ∂F scan span ±1 MHz
+    SET_NON_SELECT_CHANNEL = b"\xB0"  # Set as non-select channel
+    SET_SELECT_CHANNEL = b"\xB1"  # Set as select channel
+    SET_SELECT_MEMORY_SCAN = b"\xB2"  # Set for select memory scan
+    SCAN_RESUME_OFF = b"\xD0"  # Set Scan resume OFF
+    SCAN_RESUME_ON = b"\xD3"  # Set Scan resume ON
+
+class VFOOperation(Enum):
+    """VFO operation commands"""
+    
+    SELECT_VFO_A = b"\x00"  # Select VFO A
+    SELECT_VFO_B = b"\x01"  # Select VFO B
+    EQUALIZE_VFO_A_B = b"\xA0"  # Equalize VFO A and VFO B
+    EXCHANGE_VFO_A_B = b"\xB0"  # Exchange VFO A and VFO B
+
 class CivCommandException(BaseException):
     """
     This exception is generated when the CI-V response is NG 
@@ -74,7 +106,7 @@ class Device:
         controller_address = "0xE0",
         timeout = 1,
         attempts = 3):
-        self._ser = serial.Serial(port, baudrate, timeout = timeout)
+        self._ser = serial.Serial(port, baudrate, timeout = timeout, dsrdtr=False)
         self._read_attempts = attempts
         # Validate the transceiver address
         if isinstance(radio_address, str) and str(radio_address).startswith("0x"):
@@ -92,8 +124,8 @@ class Device:
         else:
             sys.tracebacklimit = 0
         # Print some information if debug is enabled
-        logger.debug(f"Opened port: {self._ser.name}")
-        logger.debug(f"Baudrate: {self._ser.baudrate} bps")
+        logger.debug("Opened port: %s", self._ser.name)
+        logger.debug("Baudrate: %s bps", self._ser.baudrate)
 
     def power_on(self) -> bytes:
         """
@@ -113,7 +145,7 @@ class Device:
             wakeup_preamble_count = 13
         else:
             wakeup_preamble_count = 7
-        logger.debug(f"Sending power-on command with {wakeup_preamble_count} wakeup preambles")
+        logger.debug("Sending power-on command with %i wakeup preambles", wakeup_preamble_count)
         return self._send_command(b"\x18\x01", preamble=b"\xfe" * wakeup_preamble_count)
 
     def power_off(self) -> bytes:
@@ -296,8 +328,6 @@ class Device:
         reply = self._send_command(b"\x15\x05")
         return not bool(reply[6])
 
-    # TODO: test all methods starting from this one
-
     def set_operating_mode(
         self, mode: OperatingMode, filter: SelectedFilter = SelectedFilter.FIL1
     ):
@@ -409,31 +439,97 @@ class Device:
     def set_antenna_tuner(self, on: bool):
         """Turns the antenna tuner on or off."""
         if on:
-            self._send_command(b"\x1C\x01\x01")  # Turn tuner ON
+            self._send_command(b"\x1C\x01", b"\x01")  # Turn tuner ON
         else:
-            self._send_command(b"\x1C\x01\x00")  # Turn tuner OFF
+            self._send_command(b"\x1C\x01", b"\x00")  # Turn tuner OFF
 
     def tune_antenna_tuner(self):
         """Starts the antenna tuner tuning process."""
-        self._send_command(b"\x1C\x01\x02")
-
-    def start_scan(self, scan_type: int = 1):
-        """Starts scanning, different types available according to the sub command"""
-        # 01 Programmed/memory scan start
-        # 02 Programmed scan start
-        # 03 F scan start
-        # 12 Fine programmed scan start
-        # 13 Fine ∂F scan start
-        # 22 Memory scan start
-        # 23 Select memory scan start
-        if scan_type in [1 - 3, 10 - 13]:
-            self._send_command(b"\x0E", data=bytes([scan_type]))
-        else:
-            raise ValueError("Invalid scan type")
+        self._send_command(b"\x1C\x01", b"\x02")
 
     def stop_scan(self):
         """Stops the scan."""
         self._send_command(b"\x0E\x00")
+
+    def send_cw_message(self, message: str):
+        """Send a CW message. Limited to 30 characters"""
+        if len(message) > 30:
+            raise ValueError("Message must be 30 characters or less")
+        # convert the string to bytes
+        message_bytes = message.encode("ascii")
+        self._send_command(b"\x17", data=message_bytes)
+
+    def set_ip_plus_function(self, enable: bool) -> bool:
+        """
+        Sets the IP+ function setting.
+
+        Args:
+            enable (bool): True to enable, False to disable.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        value = 1 if enable else 0
+        reply = self._send_command(b"\x1a\x07", data=bytes([value]))
+        return len(reply) > 0
+
+    def set_mf_band_attenuator(self, enable: bool) -> bool:
+        """
+        Sets the MF band attenuator setting.
+
+        Args:
+            enable (bool): True to enable, False to disable.
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+        """
+        reply = self._send_command(b"\x1a\x05\x01\x93", data=bytes([int(enable)]))
+        return len(reply) > 0
+
+    def set_vfo_mode(self, vfo_mode: VFOOperation = VFOOperation.SELECT_VFO_A):
+        """Sets the VFO mode."""
+        if vfo_mode in VFOOperation:
+            self._send_command(b"\x07", data=vfo_mode.value)
+        else:
+            raise ValueError("Invalid vfo_mode")
+
+    def set_memory_mode(self, memory_channel: int):
+        """Sets the memory mode, accepts values from 1 to 101"""
+        if not (1 <= memory_channel <= 101):
+            raise ValueError("Memory channel must be between 1 and 101")
+        # 0001 to 0109 Select the Memory channel *(0001=M-CH01, 0099=M-CH99)
+        # 0100 Select program scan edge channel P1
+        # 0101 Select program scan edge channel P2
+        
+        if 0 < memory_channel < 100:
+            hex_list = ["0x00"]
+        elif memory_channel in [100, 101]:
+            hex_list = ["0x01"]
+        else:
+            raise ValueError("Memory channel must be between 1 and 101")
+        number_as_string = str(memory_channel).rjust(3, "0")
+        hex_list.append(f"0x{number_as_string[1]}{number_as_string[2]}")
+        self._send_command(b"\x08", data=bytes([int(hx, 16) for hx in hex_list]))
+
+    # TODO: test all methods starting from this one
+
+    def start_scan(self, scan_type: ScanMode = ScanMode.SELECT_DF_SPAN_100KHZ):
+        """
+        Starts scanning, different types available according to the sub command
+        
+        Note: this always returns some error
+        """
+        if scan_type in ScanMode:
+            self._send_command(b"\x0E", data=scan_type.value)
+        else:
+            raise ValueError("Invalid scan type")
+
+    def set_mox(self, transmit: bool):
+        """Turns the MOX on or off"""
+        if transmit:
+            self._send_command(b"\x1C\x00", b"\x01")
+        else:
+            self._send_command(b"\x1C\x00", b"\x00")
 
     def set_scan_resume(self, on: bool):
         """Set scan resume on or off"""
@@ -445,9 +541,9 @@ class Device:
     def set_scan_speed(self, high: bool):
         """Sets the scan speed"""
         if high:
-            self._send_command(b"\x1A\x05\x01\x78\x01")
+            self._send_command(b"\x1A\x05\x01\x78", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x01\x78\x00")
+            self._send_command(b"\x1A\x05\x01\x78", b"\x00")
 
     def set_speech_synthesizer(self, speech_type: int = 1):
         """
@@ -473,43 +569,25 @@ class Device:
     def set_speech_language(self, english: bool = True):
         """Sets the speech language, True for english, false for japanese"""
         if english:
-            self._send_command(b"\x1A\x05\x00\x39\x00")
+            self._send_command(b"\x1A\x05\x00\x39", b"\x00")
         else:
-            self._send_command(b"\x1A\x05\x00\x39\x01")
+            self._send_command(b"\x1A\x05\x00\x39", b"\x01")
 
     def set_speech_speed(self, high: bool = True):
         """Sets the speech speed"""
         if high:
-            self._send_command(b"\x1A\x05\x00\x40\x01")
+            self._send_command(b"\x1A\x05\x00\x40", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x00\x40\x00")
+            self._send_command(b"\x1A\x05\x00\x40", b"\x00")
 
     def read_band_edge_frequencies(self):
-        """Reads the band edge frequencies. This command requires further implementation due to its complex data structure"""
+        """
+        Reads the band edge frequencies. 
+        This command requires further implementation due to its complex data structure
+        """
+        raise NotImplementedError()
         reply = self._send_command(b"\x02")
         return reply
-
-    def set_vfo_mode(self, vfo_mode: int):
-        """Sets the VFO mode."""
-        # 00 Select VFO A
-        # 01 Select VFO B
-        # A0 Equalize VFO A and VFO B
-        # B0 Exchange VFO A and VFO B
-        if vfo_mode in [0, 1, 0xA0, 0xB0]:
-            self._send_command(b"\x07", data=bytes([vfo_mode]))
-        else:
-            raise ValueError("Invalid vfo_mode")
-
-    def set_memory_mode(self, memory_channel: int):
-        """Sets the memory mode, accepts values from 1 to 101"""
-        if not (1 <= memory_channel <= 101):
-            raise ValueError("Memory channel must be between 1 and 101")
-        # 0001 to 0109 Select the Memory channel *(0001=M-CH01, 0099=M-CH99)
-        # 0100 Select program scan edge channel P1
-        # 0101 Select program scan edge channel P2
-        data = memory_channel.to_bytes(2, byteorder="big")
-
-        self._send_command(b"\x08", data=data)
 
     def memory_write(self):
         """Write to memory, implementation is very complex due to the large amount of data"""
@@ -524,14 +602,6 @@ class Device:
         """Clears the memory"""
         self._send_command(b"\x0B")
 
-    def send_cw_message(self, message: str):
-        """Send a CW message. Limited to 30 characters"""
-        if len(message) > 30:
-            raise ValueError("Message must be 30 characters or less")
-        # convert the string to bytes
-        message_bytes = message.encode("ascii")
-        self._send_command(b"\x17", data=message_bytes)
-
     def set_lcd_brightness(self, level: int):
         """Sets the LCD brightness, from 0 to 255"""
         if not (0 <= level <= 255):
@@ -542,16 +612,16 @@ class Device:
     def set_display_image_type(self, type: bool = True):
         """Set display image type"""
         if type:
-            self._send_command(b"\x1A\x05\x00\x82\x01")
+            self._send_command(b"\x1A\x05\x00\x82", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x00\x82\x00")
+            self._send_command(b"\x1A\x05\x00\x82", b"\x00")
 
     def set_display_font(self, round: bool = True):
         """Set the display font"""
         if round:
-            self._send_command(b"\x1A\x05\x00\x83\x01")
+            self._send_command(b"\x1A\x05\x00\x83", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x00\x83\x00")
+            self._send_command(b"\x1A\x05\x00\x83", b"\x00")
 
     def read_scope_waveform_data(self):
         """Reads the scope waveform data"""
@@ -562,9 +632,9 @@ class Device:
     def set_scope_mode(self, fixed_mode: bool = False):
         """Sets the scope mode, True for Fixed, False for Center"""
         if fixed_mode:
-            self._send_command(b"\x27\x14\x01")
+            self._send_command(b"\x27\x14", b"\x01")
         else:
-            self._send_command(b"\x27\x14\x00")
+            self._send_command(b"\x27\x14", b"\x00")
 
     def set_scope_span(self, span_hz: int):
         """Sets the scope span in Hz"""
@@ -639,19 +709,20 @@ class Device:
     def set_scope_vbw(self, wide: bool = True):
         """Sets the scope VBW (Video Band Width), True for wide, false for narrow"""
         if wide:
-            self._send_command(b"\x27\x1D\x01")
+            self._send_command(b"\x27\x1D", b"\x01")
         else:
-            self._send_command(b"\x27\x1D\x00")
+            self._send_command(b"\x27\x1D", b"\x00")
 
     def set_scope_waterfall_display(self, on: bool):
         """Turns the waterfall display on or off for the scope"""
         if on:
-            self._send_command(b"\x1A\x05\x01\x07\x01")
+            self._send_command(b"\x1A\x05\x01\x07", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x01\x07\x00")
+            self._send_command(b"\x1A\x05\x01\x07", b"\x00")
 
     def set_memory_name(self, memory_channel: int, name: str):
-        """Sets the memory name, max 10 characters
+        """
+        Sets the memory name, max 10 characters
         memory_channel 1 to 99
         """
         if not (1 <= memory_channel <= 99):
@@ -695,58 +766,58 @@ class Device:
     def set_rtty_keying_polarity(self, reverse: bool = False):
         """Sets the RTTY keying polarity, True for reverse, False for normal"""
         if reverse:
-            self._send_command(b"\x1A\x05\x00\x38\x01")
+            self._send_command(b"\x1A\x05\x00\x38", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x00\x38\x00")
+            self._send_command(b"\x1A\x05\x00\x38", b"\x00")
 
     def set_rtty_decode_usos(self, on: bool = False):
         """Set RTTY decode USOS"""
         if on:
-            self._send_command(b"\x1A\x05\x01\x68\x01")
+            self._send_command(b"\x1A\x05\x01\x68", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x01\x68\x00")
+            self._send_command(b"\x1A\x05\x01\x68", b"\x00")
 
     def set_rtty_decode_newline_code(self, crlf: bool = True):
         """Set RTTY decode new line code"""
         if crlf:
-            self._send_command(b"\x1A\x05\x01\x69\x01")
+            self._send_command(b"\x1A\x05\x01\x69", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x01\x69\x00")
+            self._send_command(b"\x1A\x05\x01\x69", b"\x00")
 
     def set_rtty_tx_usos(self, on: bool = False):
         """Sets RTTY tx USOS"""
         if on:
-            self._send_command(b"\x1A\x05\x01\x70\x01")
+            self._send_command(b"\x1A\x05\x01\x70", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x01\x70\x00")
+            self._send_command(b"\x1A\x05\x01\x70", b"\x00")
 
     def set_rtty_log(self, on: bool = False):
         """Set RTTY log function"""
         if on:
-            self._send_command(b"\x1A\x05\x01\x73\x01")
+            self._send_command(b"\x1A\x05\x01\x73", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x01\x73\x00")
+            self._send_command(b"\x1A\x05\x01\x73", b"\x00")
 
     def set_rtty_log_file_format(self, html: bool = False):
         """Set the file format for the RTTY log, True for HTML, False for text"""
         if html:
-            self._send_command(b"\x1A\x05\x01\x74\x01")
+            self._send_command(b"\x1A\x05\x01\x74", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x01\x74\x00")
+            self._send_command(b"\x1A\x05\x01\x74", b"\x00")
 
     def set_rtty_log_time_stamp(self, on: bool = False):
         """Set RTTY time stamp"""
         if on:
-            self._send_command(b"\x1A\x05\x01\x75\x01")
+            self._send_command(b"\x1A\x05\x01\x75", b"\x01")
         else:
-            self._send_command(b"\x1A\x05\x01\x75\x00")
+            self._send_command(b"\x1A\x05\x01\x75", b"\x00")
 
     def set_rtty_log_time_stamp_local(self, local: bool = True):
         """Set the RTTY Log Time Stamp local or UTC"""
         if local:
-            self._send_command(b"\x1A\x05\x01\x76\x00")
+            self._send_command(b"\x1A\x05\x01\x76", b"\x00")
         else:
-            self._send_command(b"\x1A\x05\x01\x76\x01")
+            self._send_command(b"\x1A\x05\x01\x76", b"\x01")
 
     def set_rtty_log_frequency_stamp(self, enable: bool) -> bool:
         """
@@ -986,20 +1057,6 @@ class Device:
         reply = self._send_command(b"\x1a\x05\x01\x92", data=bytes([voice_delay]))
         return len(reply) > 0
 
-    def set_mf_band_attenuator(self, enable: bool) -> bool:
-        """
-        Sets the MF band attenuator setting.
-
-        Args:
-            enable (bool): True to enable, False to disable.
-
-        Returns:
-            bool: True if the command was successful, False otherwise.
-        """
-        value = 1 if enable else 0
-        reply = self._send_command(b"\x1a\x05\x01\x93", data=bytes([value]))
-        return len(reply) > 0
-
     def set_data_mode(self, enable: bool, filter: int = 1) -> bool:
         """
         Sets the data mode.
@@ -1021,20 +1078,6 @@ class Device:
         reply = self._send_command(b"\x1a\x06", data=bytes([value, filter]))
         return len(reply) > 0
 
-    def set_ip_plus_function(self, enable: bool) -> bool:
-        """
-        Sets the IP+ function setting.
-
-        Args:
-            enable (bool): True to enable, False to disable.
-
-        Returns:
-            bool: True if the command was successful, False otherwise.
-        """
-        value = 1 if enable else 0
-        reply = self._send_command(b"\x1a\x07", data=bytes([value]))
-        return len(reply) > 0
-
     # Private methods
 
     def _encode_2_bytes_value(self, value: int) -> bytes:
@@ -1051,8 +1094,8 @@ class Device:
         """
         if command is None or not isinstance(command, bytes):
             raise ValueError("Command must be a non-empty byte string")
-        if len(command) not in [1, 2]:
-            raise ValueError("Command must be 1 or 2 bytes long (command with an optional subcommand)")
+        if len(command) not in [1, 2, 3, 4]:
+            raise ValueError("Command must be 1-4 bytes long (command with an optional subcommand up to 3 bytes)")
         # The command is composed of:
         # - 0xFE 0xFE is the preamble
         # - the transceiver address
@@ -1067,7 +1110,7 @@ class Device:
             + data
             + b"\xfd"
         )
-        logger.debug(f"Sending command: {self._bytes_to_string(command_string)} (length: {len(command_string)})")
+        logger.debug("Sending command: %s (length: %i)", self._bytes_to_string(command_string), len(command_string))
         # Send the command to the COM port
         self._ser.write(command_string)
         # Read the response from the transceiver
@@ -1076,7 +1119,7 @@ class Device:
         for i in range(self._read_attempts):
             # Read data from the serial port until the terminator byte
             reply = self._ser.read_until(expected=b"\xfd")
-            logger.debug(f"Received message: {self._bytes_to_string(reply)} (length: {len(reply)})")
+            logger.debug("Received message: %s (length: %i)", self._bytes_to_string(reply), len(reply))
             # Check if we received an echo message
             if reply == command_string:
                 i -= 1 # Decrement cycles as it is just the echo back
@@ -1094,7 +1137,7 @@ class Device:
                     i -= 1 # Decrement cycles to ignore messages not for us
                 # Check the return code (0xFA is only returned in case of error)
                 elif reply_code == bytes.fromhex("FA"):  # 0xFA (not good)
-                    logger.debug(f"Reply status: NG ({self._bytes_to_string(reply_code)}")
+                    logger.debug("Reply status: NG (%s)", self._bytes_to_string(reply_code))
                     raise CivCommandException("Reply status: NG", reply_code)
                 else:
                     logger.debug("Reply status: OK (0xFB)")
@@ -1102,7 +1145,7 @@ class Device:
                     break
             # Check if the respose was empty (timeout)
             else:
-                logger.debug(f"Serial communication timeout ({i+1}/{self._read_attempts})")
+                logger.debug("Serial communication timeout (%i/%i)", i+1, self._read_attempts)
         # Return the result to the user
         if not valid_reply:
             raise CivTimeoutException(f"Communication timeout occurred after {i+1} attempts")
