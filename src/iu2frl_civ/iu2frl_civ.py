@@ -124,17 +124,16 @@ class Device:
         """
         return self._send_command(b"\x18\x00")
 
-    def read_transceiver_id(self) -> int:
+    def read_transceiver_id(self) -> bytes:
         """
         Read the transceiver address
         
-        Returns: the address of the transceiver
+        Returns: the address of the transceiver, 0x00 if error
         """
         reply = self._send_command(b"\x19\x00")
         if len(reply) > 0:
-            value = reply[-2:-1]
-            return int(value)
-        return -1
+            return reply[-2:-1]
+        return b'\x00'
 
     def read_operating_frequency(self) -> int:
         """
