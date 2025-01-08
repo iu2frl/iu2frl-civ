@@ -62,8 +62,8 @@ class Device:
 
     _ser: serial.Serial  # Serial port object
     _read_attempts: int # How many attempts before giving up the read process
-    transceiver_address: str  # Hexadecimal address of the radio transceiver
-    controller_address: str # Hexadecimal address of the controller (this code)
+    transceiver_address: bytes  # Hexadecimal address of the radio transceiver
+    controller_address: bytes # Hexadecimal address of the controller (this code)
 
     def __init__(
         self,
@@ -78,13 +78,12 @@ class Device:
         self._read_attempts = attempts
         # Validate the transceiver address
         if isinstance(radio_address, str) and str(radio_address).startswith("0x"):
-            self.transceiver_address = radio_address[2:]
+            self.transceiver_address = bytes.fromhex(radio_address[2:])
         else:
             raise ValueError("Transceiver address must be in hexadecimal format (0x00)")
-        self.transceiver_address = radio_address
         # Validate the controller address
         if isinstance(controller_address, str) and str(controller_address).startswith("0x"):
-            self.controller_address = controller_address[2:]
+            self.controller_address = bytes.fromhex(controller_address[2:])
         else:
             raise ValueError("Controller address must be in hexadecimal format (0x00)")
         # Configure logging if needed
@@ -1016,8 +1015,8 @@ class Device:
         command_string = (
             preamble
             + b"\xfe\xfe"
-            + bytes([int(self.transceiver_address, 16)])
-            + bytes([int(self.controller_address, 16)])
+            + self.transceiver_address
+            + self.controller_address
             + command
             + data
             + b"\xfd"
@@ -1040,7 +1039,7 @@ class Device:
                 target_controller = reply[2] # Target of the reply from the transceiver
                 reply_code = reply[len(reply) - 2] # Command reply status code
                 # Check if the response is for us
-                if target_controller == int(self.controller_address):
+                if target_controller == bytes.fromhex(self.controller_address):
                     logger.debug("Ignoring message which is not for us")
                     i -= 1 # Decrement cycles to ignore messages not for us
                 # Check the return code
