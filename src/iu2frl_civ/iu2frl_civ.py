@@ -1039,11 +1039,11 @@ class Device:
                 target_controller = reply[2] # Target of the reply from the transceiver
                 reply_code = reply[len(reply) - 2] # Command reply status code
                 # Check if the response is for us
-                if target_controller == bytes.fromhex(self.controller_address):
+                if target_controller == self.controller_address:
                     logger.debug("Ignoring message which is not for us")
                     i -= 1 # Decrement cycles to ignore messages not for us
                 # Check the return code
-                elif reply_code == 251:  # 0xFB (good)
+                elif reply_code == bytes.fromhex("FB"):  # 0xFB (good)
                     logger.debug("Reply status: OK (0xFB)")
                     valid_reply = True
                     break
