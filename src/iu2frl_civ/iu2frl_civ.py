@@ -1037,11 +1037,14 @@ class Device:
                 logger.debug("Ignoring echo message")
             # Check the response
             elif len(reply) > 2:
-                target_controller: bytes = reply[2].to_bytes(1, "big") # Target of the reply from the transceiver
+                target_controller: bytes = reply[2].to_bytes(1, "big") # Target address of the reply from the transceiver
+                source_transceiver: bytes = reply[3].to_bytes(1, "big") # Source address of the reply from the transceiver
                 reply_code: bytes = reply[len(reply) - 2].to_bytes(1, "big") # Command reply status code
                 # Check if the response is for us
-                if target_controller == self.controller_address:
-                    logger.debug("Ignoring message which is not for us")
+                if target_controller != self.controller_address or source_transceiver != self.transceiver_address:
+                    logger.debug("Ignoring message which is not for us " +
+                        f"(received: {self._bytes_to_string(source_transceiver)} -> {self._bytes_to_string(target_controller)} " + 
+                        f"but we are using: {self._bytes_to_string(self.transceiver_address)} -> {self._bytes_to_string(self.controller_address)})")
                     i -= 1 # Decrement cycles to ignore messages not for us
                 # Check the return code
                 elif reply_code == bytes.fromhex("FB"):  # 0xFB (good)
