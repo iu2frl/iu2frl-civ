@@ -1,5 +1,5 @@
 [project]
-name = "iu2frl_civ"
+name = "iu2frl-civ"
 authors = [
   { name="Luca Bennati", email="lucabennati1996@gmail.com" }
 ]
