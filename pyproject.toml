@@ -1,5 +1,5 @@
 [project]
-name = "pycom"
+name = "civ"
 authors = [
   { name="Luca Bennati", email="lucabennati1996@gmail.com" }
 ]
@@ -17,7 +17,6 @@ classifiers = [
     "License :: OSI Approved :: Apache V2 License",
     "Operating System :: OS Independent",
 ]
-# version = "0.0.1"  # make sure there is no version parameter
 dynamic = ["version"]
 
 [project.urls]

@@ -57,8 +57,8 @@ class CivTimeoutException(BaseException):
     """
     pass
 
-class PyCom:
-    """Create a PyCom object to interact with the radio transceiver"""
+class Device:
+    """Create a CI-V object to interact with the radio transceiver"""
 
     _ser: serial.Serial  # Serial port object
     _read_attempts: int # How many attempts before giving up the read process

@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/pycom
+      url: https://pypi.org/p/civ
     permissions:
       id-token: write
     steps:
