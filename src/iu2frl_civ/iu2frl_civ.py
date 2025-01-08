@@ -186,60 +186,80 @@ class Device:
         """
         Read the AF volume
 
+        Raw values from CI-V
         0: min
         255: max
+        
+        Returns: The percentage of the volume being set
         """
         reply = self._send_command(b"\x14\x01")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[6], reply[7])
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            return self._convert_to_range(raw_value, 0, 255, 0, 100)
         return -1
 
     def read_rf_gain(self) -> int:
         """
         Read the RF gain
 
+        Raw values from CI-V
         0: min
         255: max
+        
+        Returns: The percentage of the RF gain being set
         """
         reply = self._send_command(b"\x14\x02")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[6], reply[7])
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            return self._convert_to_range(raw_value, 0, 255, 0, 100)
         return -1
 
     def read_squelch_level(self) -> int:
         """
         Read the squelch level
 
+        Raw values from CI-V
         0: min
         255: max
+        
+        Returns: The percentage of the squelch being set
         """
         reply = self._send_command(b"\x14\x03")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[6], reply[7])
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            return self._convert_to_range(raw_value, 0, 255, 0, 100)
         return -1
 
     def read_nr_level(self) -> int:
         """
         Read the NR level
 
+        Raw values from CI-V
         0: min
         255: max
+        
+        Returns: The percentage of the NR being set
         """
         reply = self._send_command(b"\x14\x06")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[6], reply[7])
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            return self._convert_to_range(raw_value, 0, 255, 0, 100)
         return -1
 
-    def read_nb_level(self) -> int:
+    def read_nb_level(self) -> float:
         """
         Read the NB level
 
+        Raw values from CI-V
         0: min
         255: max
+        
+        Returns: The percentage of the NB being set
         """
         reply = self._send_command(b"\x14\x12")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[6], reply[7])
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            return self._convert_to_range(raw_value, 0, 255, 0, 100)
         return -1
 
     def read_smeter(self) -> int:
@@ -261,20 +281,20 @@ class Device:
     def read_squelch_status(self):
         """
         Read noise or S-meter squelch status
-
-        TODO: test if properly working
+        
+        Returns: True if squelch is enabled (audio is silent)
         """
         reply = self._send_command(b"\x15\x01")
-        return reply
+        return not bool(reply[6])
 
     def read_squelch_status2(self):
         """
         Read various squelch function’s status
-
-        TODO: test if properly working
+        
+        Returns: True if squelch is enabled (audio is silent)
         """
         reply = self._send_command(b"\x15\x05")
-        return reply
+        return not bool(reply[6])
 
     # TODO: test all methods starting from this one
 
@@ -286,7 +306,7 @@ class Device:
         data = bytes([mode.value, filter.value])
         self._send_command(b"\x06", data=data)
 
-    def read_po_meter(self) -> int:
+    def read_po_meter(self) -> float:
         """
         Read the PO meter level.
         0: 0%
@@ -295,10 +315,13 @@ class Device:
         """
         reply = self._send_command(b"\x15\x11")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[7], reply[6])
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            # Known points (raw -> PO%)
+            points = [(0, 0), (143, 50), (213, 100)]
+            return self._linear_interpolate(raw_value, points)
         return -1
 
-    def read_swr_meter(self) -> int:
+    def read_swr_meter(self) -> float:
         """
         Read the SWR meter level.
         0: SWR1.0,
@@ -308,10 +331,13 @@ class Device:
         """
         reply = self._send_command(b"\x15\x12")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[7], reply[6])
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            # Known points (raw -> SWR)
+            points = [(0, 1), (48, 1.5), (80, 2.0), (120, 3.0), (255, 99)]
+            return self._linear_interpolate(raw_value, points)
         return -1
 
-    def read_alc_meter(self) -> int:
+    def read_alc_meter(self) -> float:
         """
         Read the ALC meter level.
         0: Min
@@ -319,10 +345,13 @@ class Device:
         """
         reply = self._send_command(b"\x15\x13")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[7], reply[6])
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            # Known points (raw -> ALC%)
+            points = [(0, 0), (120, 100)]
+            return self._linear_interpolate(raw_value, points)
         return -1
 
-    def read_comp_meter(self) -> int:
+    def read_comp_meter(self) -> float:
         """
         Read the COMP meter level.
         0: 0 dB,
@@ -331,33 +360,51 @@ class Device:
         """
         reply = self._send_command(b"\x15\x14")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[7], reply[6])
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            # Known points (raw -> dB)
+            points = [(0, 0), (130, 15), (241, 30)]
+            return self._linear_interpolate(raw_value, points)
         return -1
 
-    def read_vd_meter(self) -> int:
+    def read_vd_meter(self) -> float:
         """
         Read the Vd meter level.
-        0: 0 V,
-        13: 10 V,
-        241: 16 V
+
+        Raw values from CI-V:
+        - 0: 0 V
+        - 13: 10 V
+        - 241: 16 V
+
+        Returns:
+            float: The voltage in volts measured on the amplifier.
         """
         reply = self._send_command(b"\x15\x15")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[7], reply[6])
-        return -1
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            # Known points (raw -> A)
+            points = [(0, 0), (13, 10), (241, 16)]
+            return self._linear_interpolate(raw_value, points)
+        return -1.0  # Return -1 in case of error
 
-    def read_id_meter(self) -> int:
+    def read_id_meter(self) -> float:
         """
         Read the Id meter level.
-        0: 0,
-        97: 10,
-        146: 15,
-        241: 25
+        
+        Raw values from CI-V:
+        - 0: 0A,
+        - 97: 10A,
+        - 146: 15A,
+        - 241: 25A
+        
+        Returns: the current in Ampere being mesured on the amplifier
         """
         reply = self._send_command(b"\x15\x16")
         if len(reply) == 9:
-            return self._bytes_to_int(reply[7], reply[6])
-        return -1
+            raw_value = self._bytes_to_int(reply[6], reply[7])
+            # List of known points (from the manual - byte -> Ampere)
+            points = [(0, 0), (97, 10), (146, 15), (241, 25)]
+            return self._linear_interpolate(raw_value, points)
+        return -1.0  # Return -1 in case of error
 
     def set_antenna_tuner(self, on: bool):
         """Turns the antenna tuner on or off."""
@@ -1088,3 +1135,44 @@ class Device:
     def _bytes_to_int(self, first_byte: bytes, second_byte: bytes) -> int:
         """Convert a byte array to an integer"""
         return (int(first_byte) * 100) + int(f"{second_byte:02X}")
+
+    def _linear_interpolate(self, raw_value: int, points: list) -> float:
+        """
+        Perform linear interpolation based on the provided points.
+
+        Args:
+            raw_value (int): The raw input value to interpolate.
+            points (list): A list of tuples (raw, value) representing the known points.
+
+        Returns:
+            float: The interpolated or exact value.
+        """
+        # Check if raw_value matches any known point
+        for point in points:
+            if raw_value == point[0]:
+                return float(point[1])
+        
+        # Perform linear interpolation between points
+        for i in range(len(points) - 1):
+            x0, y0 = points[i]
+            x1, y1 = points[i + 1]
+            if x0 < raw_value < x1:
+                return y0 + (y1 - y0) * (raw_value - x0) / (x1 - x0)
+        
+        # Handle out-of-range values
+        if raw_value < points[0][0]:
+            return float(points[0][1])
+        if raw_value > points[-1][0]:
+            return float(points[-1][1])
+        
+        return -1.0  # Return -1 if interpolation is not possible
+
+    def _convert_to_range(self, input_value, old_min, old_max, new_min, new_max):
+        """Convert an input value from a range to a new one"""
+        old_range = old_max - old_min
+        if old_range == 0:
+            new_value = new_min
+        else:
+            new_range = new_max - new_min
+            new_value = (((input_value - old_min) * new_range) / old_range) + new_min
+        return new_value
