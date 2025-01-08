@@ -1056,7 +1056,7 @@ class PyCom:
                 logger.debug(f"Serial communication timeout ({i+1}/{self._read_attempts})")
         # Return the result to the user
         if not valid_reply:
-            raise CivTimeoutException(f"Communication timeout occurred after {i} attempts")
+            raise CivTimeoutException(f"Communication timeout occurred after {i+1} attempts")
         else:
             return reply
 
