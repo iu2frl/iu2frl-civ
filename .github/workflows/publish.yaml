@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/civ
+      url: https://pypi.org/p/iu2frl-civ
     permissions:
       id-token: write
     steps:
