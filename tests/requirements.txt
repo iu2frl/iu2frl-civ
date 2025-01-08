@@ -1,1 +1,1 @@
-iu2frl-civ >= 0.0.5
+iu2frl-civ >= 0.0.7

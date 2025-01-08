@@ -1,5 +1,5 @@
 [project]
-name = "iu2frl-civ"
+name = "iu2frl_civ"
 authors = [
   { name="Luca Bennati", email="lucabennati1996@gmail.com" }
 ]
@@ -21,8 +21,9 @@ classifiers = [
 version = "v0.0.0"
 
 [project.urls]
-Homepage = "https://github.com/iu2frl/pycom"
-Issues = "https://github.com/iu2frl/pycom/issues"
+Homepage = "https://github.com/iu2frl/iu2frl_civ"
+Source = "https://github.com/iu2frl/iu2frl_civ"
+Issues = "https://github.com/iu2frl/iu2frl_civ/issues"
 
 [build-system]
 requires = ["setuptools", "pyserial>=3.5", "wheel"]
