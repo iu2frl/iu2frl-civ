@@ -1030,14 +1030,15 @@ class Device:
         for i in range(self._read_attempts):
             # Read data from the serial port until the terminator byte
             reply = self._ser.read_until(expected=b"\xfd")
+            logger.debug(f"Received message: {self._bytes_to_string(reply)} (length: {len(reply)})")
             # Check if we received an echo message
             if reply == command_string:
                 i -= 1 # Decrement cycles as it is just the echo back
-                logger.debug(f"Received echo: {self._bytes_to_string(reply)} (length: {len(reply)})")
+                logger.debug("Ignoring echo message")
             # Check the response
             elif len(reply) > 2:
-                target_controller = reply[2] # Target of the reply from the transceiver
-                reply_code = reply[len(reply) - 2] # Command reply status code
+                target_controller: bytes = reply[2].to_bytes(1, "big") # Target of the reply from the transceiver
+                reply_code: bytes = reply[len(reply) - 2].to_bytes(1, "big") # Command reply status code
                 # Check if the response is for us
                 if target_controller == self.controller_address:
                     logger.debug("Ignoring message which is not for us")
