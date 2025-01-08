@@ -1,5 +1,5 @@
 """Sample code to show how the library works"""
-import iu2frl_civ
+from iu2frl_civ import iu2frl_civ
 
 def main():
     """Connect to the transceiver and get some data"""

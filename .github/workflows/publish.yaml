@@ -26,8 +26,7 @@ jobs:
           python -m venv venv
           source ./venv/bin/activate
           pip install --upgrade pip
-          pip install -r ./requirements.txt
-          pip install setuptools wheel build click incremental
+          pip install pyserial==3.5 setuptools wheel build click incremental>=24.7.2
           python -m incremental.update iu2frl-civ --newversion=${{ steps.get-latest-tag.outputs.tag }}
           python -m build
       - name: Publish package distributions to PyPI

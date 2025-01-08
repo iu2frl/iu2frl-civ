@@ -6,7 +6,15 @@ Python library for communicating with iCOM radios using CI-V.
 
 - IC-7300 (fw: 1.42)
 
-## Sample code
+## Usage
+
+### Installing dependencies
+
+- Install the package using `pip install iu2frl-civ`
+
+### Importing the module
+
+- 
 
 Some sample commands are available in the `tests/main.py` file
 
