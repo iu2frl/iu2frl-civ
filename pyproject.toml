@@ -9,8 +9,7 @@ license = { file = "LICENSE" }
 keywords = ["icom", "ci-v", "transceivers", "communication"]
 requires-python = ">=3.8"
 dependencies = [
-    "pyserial >= 3.5",
-    "incremental>=24.7.2"
+    "pyserial >= 3.5"
 ]
 classifiers = [
     "Programming Language :: Python",
@@ -19,14 +18,12 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
 ]
-dynamic = ["version"]
+version = "v0.0.0"
 
 [project.urls]
 Homepage = "https://github.com/iu2frl/pycom"
 Issues = "https://github.com/iu2frl/pycom/issues"
 
 [build-system]
-requires = ["setuptools", "pyserial>=3.5", "wheel", "incremental>=24.7.2"]
+requires = ["setuptools", "pyserial>=3.5", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[tool.incremental]
