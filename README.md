@@ -20,6 +20,19 @@ Python library for communicating with iCOM radios using CI-V.
 
 - Initialize the target device using `device = iu2frl_civ.Device("0x94", port="/dev/tty", debug=True)`
 
+Where:
+
+- `0x94` is the transceiver address
+
+Then, additional arguments can be passed:
+
+- `port = "/dev/ttyUSB0"`: communication port of the transceiver
+- `baudrate: int = 19200`: baudrate of the device
+- `debug = False`: useful to troubleshoot communication issues
+- `controller_address = "0xE0"`: address of the controller (this library)
+- `timeout = 1`: serial port communication timeout in seconds
+- `attempts = 3`: how many attempts to perform in case of timeout or errors
+
 ### 4. Use the radio object
 
 Once the device object is created, any supported method can be used, for example:
