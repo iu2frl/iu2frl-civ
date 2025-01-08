@@ -1,5 +1,5 @@
 """Sample code to show how the library works"""
-import pycom
+from pycom_iu2frl import pycom
 
 def main():
     """Connect to the transceiver and get some data"""
