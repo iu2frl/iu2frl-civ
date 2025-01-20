@@ -4,39 +4,33 @@ import time
 
 try:
     # Import the library installed using pip
-    from iu2frl_civ import iu2frl_civ
+    from iu2frl_civ.device_factory import DeviceFactory
+    from iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
+    from iu2frl_civ.exceptions import CivCommandException, CivTimeoutException
 except ImportError:
     # Use this block if working with source code
     import sys
     from pathlib import Path
     sys.path.append(str(Path(__file__).parent.parent))
-    from src.iu2frl_civ import iu2frl_civ
+    from src.iu2frl_civ.device_factory import DeviceFactory
+    from src.iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
+    from src.iu2frl_civ.exceptions import CivCommandException, CivTimeoutException
 
 # Main program
 def main():
     """Connect to the transceiver and get some data"""
     print("Connecting to the transceiver")
-    radio = iu2frl_civ.Device("0x94", port="COM10", debug=True)
+    repository = DeviceFactory.get_repository(DeviceType.IC_706_MK2)
+
+    radio = repository("0x94", port="/dev/pts/0", debug=True)
     print(f"- Connected to the transceiver at {radio._ser.port} with baudrate {radio._ser.baudrate}bps")
-    print ("- Turning on the transceiver")
-    radio.power_on()
-    print("- Waiting for the transceiver to be ready..", end="")
-    transceiver_address = b'\x00'
-    while transceiver_address == b'\x00':
-        print(".", end="")
-        try:
-            transceiver_address = radio.read_transceiver_id()
-        except iu2frl_civ.CivTimeoutException:
-            pass
-    print()
-    print("Setting transceiver frequency and mode")
-    print(f"- Transceiver address: {transceiver_address}")
+
     new_frequency = 28202000
     print(f"- Setting new frequency to {new_frequency}")
     radio.send_operating_frequency(new_frequency)
     print(f"- Current frequency: {radio.read_operating_frequency()} Hz")
-    new_mode = iu2frl_civ.OperatingMode.USB
-    new_filter = iu2frl_civ.SelectedFilter.FIL2
+    new_mode = OperatingMode.USB
+    new_filter = SelectedFilter.FIL2
     print(f"- Setting new mode to {new_mode.name} with filter {new_filter.name}")
     radio.set_operating_mode(new_mode, new_filter)
     print(f"- Operating mode: {radio.read_operating_mode()}")
@@ -87,14 +81,14 @@ def main():
         radio.set_memory_mode(i+1)
         time.sleep(0.5)
     print("- Setting VFO A")
-    radio.set_vfo_mode(iu2frl_civ.VFOOperation.SELECT_VFO_A)
+    radio.set_vfo_mode(VFOOperation.SELECT_VFO_A)
     time.sleep(1)
     print("- Setting VFO B")
-    radio.set_vfo_mode(iu2frl_civ.VFOOperation.SELECT_VFO_B)
+    radio.set_vfo_mode(VFOOperation.SELECT_VFO_B)
     time.sleep(1)
     
     print("Scanning memories")
-    radio.start_scan(iu2frl_civ.ScanMode.SELECT_DF_SPAN_50KHZ)
+    radio.start_scan(ScanMode.SELECT_DF_SPAN_50KHZ)
     #radio.power_off() # works
 
 if __name__ == "__main__":

@@ -1,1 +1,1 @@
-from .iu2frl_civ import *
+from .device_base import *
