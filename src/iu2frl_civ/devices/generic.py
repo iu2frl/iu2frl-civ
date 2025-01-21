@@ -111,12 +111,15 @@ class GenericDevice(DeviceBase):
         else:
             return ["ERR", "ERR"]
 
-    def send_operating_frequency(self, frequency_hz: int) -> bool:
+    def send_operating_frequency(self, frequency_hz: int | float) -> bool:
         """
         Send the operating frequency
         
         Returns: True if the frequency was properly sent
         """
+        if isinstance(frequency_hz, float):  # fix for using scientific notation ex: 14.074e6
+            frequency_hz = int(frequency_hz)
+        
         # Validate input
         if not (10_000 <= frequency_hz <= 74_000_000):  # IC-7300 frequency range in Hz
             raise ValueError("Frequency must be between 10 kHz and 74 MHz")

@@ -1,6 +1,6 @@
 from ..device_base import DeviceBase
 from ..utils import Utils
-from ..enums import OperatingMode, VFOOperation
+from ..enums import OperatingMode, VFOOperation, TuningStep
 
 
 class IC706MKII(DeviceBase):
@@ -61,18 +61,21 @@ class IC706MKII(DeviceBase):
     def set_operating_mode(self, mode: OperatingMode):
         """Sets the operating mode and filter."""
         # Command 0x06 with mode and filter data
-        data = bytes(mode.value)
+        data = mode.value.to_bytes()
         self.utils.send_command(b"\x06", data=data)
 
-    def send_operating_frequency(self, frequency_hz: int) -> bool:
+    def send_operating_frequency(self, frequency_hz: int | float) -> bool:
         """
         Send the operating frequency
         
         Returns: True if the frequency was properly sent
         """
+        if isinstance(frequency_hz, float):  # fix for using scientific notation ex: 14.074e6
+            frequency_hz = int(frequency_hz)
+
         # Validate input
-        if not (10_000 <= frequency_hz <= 74_000_000):  # IC-7300 frequency range in Hz
-            raise ValueError("Frequency must be between 10 kHz and 74 MHz")
+        if not (10_000 <= frequency_hz <= 200_000_000):  # IC-706 MK-II frequency range in Hz
+            raise ValueError("Frequency must be between 10 kHz and 200 MHz")
         # Encode the frequency
         data = self.utils.encode_frequency(frequency_hz)
 
@@ -127,3 +130,13 @@ class IC706MKII(DeviceBase):
     def memory_clear(self):
         """Clears the memory"""
         self.utils.send_command(b"\x0B")
+
+    def set_tuning_step(self, ts: TuningStep) -> bytes:
+        if ts in TuningStep:
+            return self.utils.send_command(b"\x10", ts.value)
+
+    def split_off(self) -> bytes:
+        return self.utils.send_command(b"\x0F", b"\x00")
+
+    def split_on(self) -> bytes:
+        return self.utils.send_command(b"\x0F", b"\x01")

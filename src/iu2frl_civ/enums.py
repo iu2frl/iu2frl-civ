@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class DeviceType(Enum):
+    """Custom implementation for different transceiver"""
     Generic = 0
     IC_706_MK2 = 1
 
@@ -62,3 +63,16 @@ class VFOOperation(Enum):
     SELECT_VFO_B = b"\x01"  # Select VFO B
     EQUALIZE_VFO_A_B = b"\xA0"  # Equalize VFO A and VFO B
     EXCHANGE_VFO_A_B = b"\xB0"  # Exchange VFO A and VFO B
+
+
+class TuningStep(Enum):
+    OFF = b"\x00"  # default: 10 Hz
+    ON = b"\x01"  # 100Hz
+    TS_1KHz = b"\x02"
+    TS_5KHz = b"\x03"
+    TS_9KHz = b"\x04"
+    TS_10KHz = b"\x05"
+    TS_12_5KHz = b"\x06"
+    TS_20KHz = b"\x07"
+    TS_25KHz = b"\x08"
+    TS_100KHz = b"\x09"

@@ -52,6 +52,30 @@ class DeviceBase(ABC):
         # Print some information if debug is enabled
         logger.debug("Opened port: %s", self._ser.name)
         logger.debug("Baudrate: %s bps", self._ser.baudrate)
+    
+    def set_tuning_step(self, ts: TuningStep) -> bytes:
+        """
+        Set the tuning step on the radio transceiver
+        
+        Returns: the response from the transceiver
+        """
+        raise NotImplementedError()
+    
+    def split_off(self) -> bytes:
+        """
+        Set split mode off on the radio transceiver
+        
+        Returns: the response from the transceiver
+        """
+        raise NotImplementedError()
+    
+    def split_on(self) -> bytes:
+        """
+        Set split mode on on the radio transceiver
+        
+        Returns: the response from the transceiver
+        """
+        raise NotImplementedError()
 
     def power_on(self) -> bytes:
         """
