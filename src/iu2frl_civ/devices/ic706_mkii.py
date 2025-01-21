@@ -10,7 +10,7 @@ class IC706MKII(DeviceBase):
         port = "/dev/ttyUSB0",
         baudrate: int = 19200,
         debug = False,
-        controller_address = "0xE0",
+        controller_address = "0x4E",
         timeout = 1,
         attempts = 3):
 
@@ -23,6 +23,10 @@ class IC706MKII(DeviceBase):
             timeout=timeout,
             attempts=attempts
         )
+
+        # fix for digirig
+        self._ser.rts = False
+        self._ser.dtr = False
 
         self.utils = Utils(
             self._ser,
