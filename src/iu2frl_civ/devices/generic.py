@@ -5,7 +5,6 @@ Custom class to communicate with ICOM devices using CI-V protocol
 from typing import Tuple
 from ..enums import *
 from ..exceptions import *
-import serial
 from ..device_base import DeviceBase
 from ..utils import Utils
 import logging
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class GenericDevice(DeviceBase):
-    """Create a CI-V object to interact with the radio transceiver"""
+    """Create a CI-V object to interact with a generic the radio transceiver"""
     def __init__(
         self,
         radio_address: str,

@@ -4,6 +4,7 @@ from ..enums import OperatingMode, VFOOperation, TuningStep
 
 
 class IC706MKII(DeviceBase):
+    """Create a CI-V object to interact with an IC-706 MK-II transceiver"""
     def __init__(
         self,
         radio_address: str,
