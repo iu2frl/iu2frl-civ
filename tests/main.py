@@ -6,7 +6,6 @@ try:
     # Import the library installed using pip
     from iu2frl_civ.device_factory import DeviceFactory
     from iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
-    from iu2frl_civ.exceptions import CivCommandException, CivTimeoutException
 except ImportError:
     # Use this block if working with source code
     import sys
@@ -14,15 +13,13 @@ except ImportError:
     sys.path.append(str(Path(__file__).parent.parent))
     from src.iu2frl_civ.device_factory import DeviceFactory
     from src.iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
-    from src.iu2frl_civ.exceptions import CivCommandException, CivTimeoutException
 
 # Main program
 def main():
     """Connect to the transceiver and get some data"""
     print("Connecting to the transceiver")
-    repository = DeviceFactory.get_repository(DeviceType.IC_706_MK2)
+    radio = DeviceFactory.get_repository(DeviceType.Generic, "0x94", port="/dev/pts/0", debug=True)
 
-    radio = repository("0x94", port="/dev/pts/0", debug=True)
     print(f"- Connected to the transceiver at {radio._ser.port} with baudrate {radio._ser.baudrate}bps")
 
     new_frequency = 28202000

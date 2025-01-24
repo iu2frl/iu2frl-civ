@@ -15,25 +15,8 @@ logger = logging.getLogger(__name__)
 
 class GenericDevice(DeviceBase):
     """Create a CI-V object to interact with a generic the radio transceiver"""
-    def __init__(
-        self,
-        radio_address: str,
-        port = "/dev/ttyUSB0",
-        baudrate: int = 19200,
-        debug = False,
-        controller_address = "0xE0",
-        timeout = 1,
-        attempts = 3):
-
-        super().__init__(
-            radio_address=radio_address,
-            port=port,
-            baudrate=baudrate,
-            debug=debug,
-            controller_address=controller_address,
-            timeout=timeout,
-            attempts=attempts
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.utils = Utils(
             self._ser,
@@ -995,3 +978,8 @@ class GenericDevice(DeviceBase):
         value = 1 if enable else 0
         reply = self.utils.send_command(b"\x1a\x06", data=bytes([value, filter]))
         return len(reply) > 0
+
+
+# Required attributes for plugin discovery
+device_type = DeviceType.Generic
+device_class = GenericDevice

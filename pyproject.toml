@@ -28,3 +28,8 @@ Issues = "https://github.com/iu2frl/iu2frl_civ/issues"
 [build-system]
 requires = ["setuptools", "pyserial>=3.5", "wheel"]
 build-backend = "setuptools.build_meta"
+
+# Define entry points for devices
+[project.entry-points."iu2frl_civ.devices"]
+ic706_mkii = "iu2frl_civ.devices.ic706_mkii"
+generic = "iu2frl_civ.devices.generic"

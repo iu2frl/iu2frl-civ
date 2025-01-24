@@ -1,29 +1,12 @@
 from ..device_base import DeviceBase
 from ..utils import Utils
-from ..enums import OperatingMode, VFOOperation, TuningStep
+from ..enums import OperatingMode, VFOOperation, TuningStep, DeviceType
 
 
 class IC706MKII(DeviceBase):
     """Create a CI-V object to interact with an IC-706 MK-II transceiver"""
-    def __init__(
-        self,
-        radio_address: str,
-        port = "/dev/ttyUSB0",
-        baudrate: int = 19200,
-        debug = False,
-        controller_address = "0x4E",
-        timeout = 1,
-        attempts = 3):
-
-        super().__init__(
-            radio_address=radio_address,
-            port=port,
-            baudrate=baudrate,
-            debug=debug,
-            controller_address=controller_address,
-            timeout=timeout,
-            attempts=attempts
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # fix for digirig
         self._ser.rts = False
@@ -141,3 +124,8 @@ class IC706MKII(DeviceBase):
 
     def split_on(self) -> bytes:
         return self.utils.send_command(b"\x0F", b"\x01")
+
+
+    # Required attributes for plugin discovery
+device_type = DeviceType.IC_706_MK2
+device_class = IC706MKII
