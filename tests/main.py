@@ -18,7 +18,7 @@ except ImportError:
 def main():
     """Connect to the transceiver and get some data"""
     print("Connecting to the transceiver")
-    radio = DeviceFactory.get_repository(DeviceType.Generic, "0x94", port="/dev/pts/0", debug=True)
+    radio = DeviceFactory.get_repository(DeviceType.Generic, "0x94", port="/dev/ttyUSB0", debug=True)
 
     print(f"- Connected to the transceiver at {radio._ser.port} with baudrate {radio._ser.baudrate}bps")
 
