@@ -15,7 +15,7 @@ Python library for communicating with iCOM radios using CI-V.
 
 ### 2. Importing the module
 
-- Import the module using `rom src.iu2frl_civ.device_factory import DeviceFactory`
+- Import the module using `rom iu2frl_civ.device_factory import DeviceFactory`
 
 ### 3. Creating the device object
 
