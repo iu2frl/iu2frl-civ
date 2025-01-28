@@ -31,5 +31,6 @@ build-backend = "setuptools.build_meta"
 
 # Define entry points for devices
 [project.entry-points."iu2frl_civ.devices"]
-ic706_mkii = "iu2frl_civ.devices.ic706_mkii"
 generic = "iu2frl_civ.devices.generic"
+ic706_mkii = "iu2frl_civ.devices.ic706_mkii"
+ic7300 = "iu2frl_civ.devices.ic7300"

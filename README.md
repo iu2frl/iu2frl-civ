@@ -36,6 +36,7 @@ Then, additional arguments can be passed:
 - `controller_address = "0xE0"`: address of the controller (this library)
 - `timeout = 1`: serial port communication timeout in seconds
 - `attempts = 3`: how many attempts to perform in case of timeout or errors
+- `fake = False`: if set to True, the library will use a fake connection to the transceiver (serial commands will be printed to the console and not sent to any port)
 
 ### 4. Use the radio object
 
@@ -52,16 +53,19 @@ The `DeviceType` enum is a custom implementation for categorizing different type
 
 It currently includes:
 
-- `Generic`:  A generic device type (tested with IC-7300).
+- `Generic`:  A generic device type (built using the IC-7300 CI-V manual).
 - `IC_706_MK2`: Represents the IC-706 MKII transceiver model.
+- `IC_7300`: Represents the IC-7300 transceiver model.
 
 ### Adding a new device to the library
 
 This process involves three main steps:
 
 - **Update DeviceType Enum**: A new entry will be added to the `DeviceType` enum to reflect the newly added device.
-- **Create a Device**: You will define a new class that will serve as your device plugin.
-- **Update pyproject.toml**: Add an entry in the `pyproject.toml` to register the plugin.
+- **Create a Device class**: You will define a new class that will serve as your device plugin.
+- **Update package info**: Add an entry in the `pyproject.toml` to register the plugin.
+- **Create a test script**: Create a new test script in the `tests` folder to test the new device.
+- **Manual build procedure**: Before sending the merge request, please try to build the package locally and make sure everything works.
 
 #### 1. Add Device to the DeviceType Enum
 
@@ -77,7 +81,7 @@ class DeviceType(Enum):
     """Custom implementation for different transceiver"""
     Generic = 0
     IC_706_MK2 = 1
-    NewDevice = 2
+    NewDevice = 99  # New device added here
  
  ...
 ```
@@ -115,8 +119,8 @@ class NewDevice(DeviceBase):
 
 
 # Required attributes for plugin discovery
-device_type = DeviceType.NewDevice
-device_class = NewDevice
+device_type = DeviceType.NewDevice # As specified in the DeviceType enum
+device_class = NewDevice # Name of the class defined above
 ```
 
 **Note**: If your device does not support certain functions (e.g., `power_on()`, `power_off()`, etc.), you do not need to implement them. The library will automatically raise a `NotImplementedError` when any unsupported method is called.
@@ -134,12 +138,23 @@ for example:
 
 ```toml
 [project.entry-points."iu2frl_civ.devices"]
-ic706_mkii = "iu2frl_civ.devices.ic706_mkii"
 generic = "iu2frl_civ.devices.generic"
+ic7300 = "iu2frl_civ.devices.ic7300"
+ic706_mkii = "iu2frl_civ.devices.ic706_mkii"
 new_device = "iu2frl_civ.devices.new_device"  # New entry for the plugin
 ```
 
-### 4. Manual build procedure
+### 4. Create a test script
+
+To test the new device, create a new test script in the `tests` folder. This script should import the new device and test its functionality. Testing should be done without building the package.
+
+- You can copy the `fake.py` script as a template.
+- If you have a real device, you can test the new device by running the test script and checking the output.
+  - Make sure the `Fake` parameter is set to **False** in the `DeviceFactory.get_repository` method.
+- Test the new device by running the test script and checking the output (without building the package yet).
+  - Make sure to uninstall any version of the library that was previously installed using `pip uninstall iu2frl-civ`
+
+### 5. Manual build procedure
 
 Before sending the merge request, please try to build the package locally and make sure everything works
 
@@ -147,7 +162,8 @@ Before sending the merge request, please try to build the package locally and ma
 2. Install the build tools: `python -m pip install --upgrade build`
 3. Build the wheel package: `python -m build`
 4. Install the package that was just built: `pip install ./dist/iu2frl_civ-0.0.0.tar.gz`
-5. Test the package using the test code in the `tests/main.py` file
+5. Test the package using the test code in the `tests/fake.py` file (the script will now use the newly built package)
+6. Test the package using the code in the test file you just created
 
 ## Sample code
 
@@ -157,6 +173,7 @@ Before sending the merge request, please try to build the package locally and ma
 Some sample commands are available in the `tests` folder.
 
 - `ic7300.py`: A simple test script that demonstrates how to use the library to communicate with the IC-7300 transceiver.
+- `ic706_mkii.py`: A simple test script that demonstrates how to use the library to communicate with the IC-706 MKII transceiver.
 - `fake.py`: A simple test script that fakes a connection to transceiver, used to validate builds.
 
 ## Project info

@@ -27,7 +27,7 @@ def main():
     """Connect to the transceiver and get some data"""
     print("Connecting to the transceiver")
     # Device initialization
-    radio = DeviceFactory.get_repository(radio_address="0x94", device_type=DeviceType.Generic, port="COM10", debug=True, fake=False)
+    radio = DeviceFactory.get_repository(radio_address="0x94", device_type=DeviceType.IC_7300, port="COM10", debug=True, fake=False)
     # Transceiver commands
     print(f"- Connected to the transceiver at {radio._ser.port} with baudrate {radio._ser.baudrate}bps")
     print("- Turning on the transceiver")
