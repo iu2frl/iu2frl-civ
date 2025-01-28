@@ -15,7 +15,7 @@ jobs:
         run: |
           ls -a
       - name: Call Test Code
-        uses: ./.github/workflows/test-code.yml
+        uses: ./.github/workflows/validate/
 
   pypi-publish:
     needs: [ call-test-code ]
