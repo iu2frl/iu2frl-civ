@@ -1,23 +1,24 @@
-name: Validate Python Package and test code
+name: Validate Python libraries and runs tests
+description: 'Validates Python libraries and runs tests'
 
 runs:
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-      - name: Install dependencies
-        shell: bash
-        run: |
-          python -m venv venv
-          source ./venv/bin/activate
-          pip install --upgrade pip
-          pip install pyserial==3.5
-      - name: Run tests
-        shell: bash
-        run: |
-          source ./venv/bin/activate
-          dir -ls
-          python3 ./tests/fake.py
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.x"
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m venv venv
+        source ./venv/bin/activate
+        pip install --upgrade pip
+        pip install pyserial==3.5
+    - name: Run tests
+      shell: bash
+      run: |
+        source ./venv/bin/activate
+        dir -ls
+        python3 ./tests/fake.py
