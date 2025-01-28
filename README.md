@@ -146,7 +146,7 @@ Before sending the merge request, please try to build the package locally and ma
 1. Move to the root directory of the project (where the `pyproject.toml` file is located)
 2. Install the build tools: `python -m pip install --upgrade build`
 3. Build the wheel package: `python -m build`
-4. Install the package that was just built: `pip install .\dist\iu2frl_civ-0.0.0.tar.gz`
+4. Install the package that was just built: `pip install ./dist/iu2frl_civ-0.0.0.tar.gz`
 5. Test the package using the test code in the `tests/main.py` file
 
 ## Sample code

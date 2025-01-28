@@ -1,0 +1,28 @@
+name: Validate Python Package when creating merge requests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+jobs:
+
+  test-code:
+    name: Test python code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source ./venv/bin/activate
+          pip install --upgrade pip
+          pip install pyserial==3.5
+      - name: Run tests
+        run: |
+          source ./venv/bin/activate
+          python3 ./test/fake.py

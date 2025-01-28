@@ -5,7 +5,48 @@ on:
     types: [created]
 
 jobs:
+
+  test-code:
+    name: Test python code with local libraries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source ./venv/bin/activate
+          pip install --upgrade pip
+          pip install pyserial==3.5
+      - name: Run tests
+        run: |
+          source ./venv/bin/activate
+          python3 ./test/fake.py
+
+  build-wheel:
+    name: Build Python package and test it
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+      - name: Install dependencies and build package
+        run: |
+          python -m venv venv
+          source ./venv/bin/activate
+          pip install --upgrade pip
+          pip install --upgrade pyserial==3.5 build
+          python -m build
+          pip install ./dist/iu2frl_civ-0.0.0.tar.gz
+          python3 ./test/fake.py
+
   pypi-publish:
+    needs: [test-code, build-wheel]
     name: Publish release to PyPI
     runs-on: ubuntu-latest
     environment:
