@@ -139,7 +139,7 @@ generic = "iu2frl_civ.devices.generic"
 new_device = "iu2frl_civ.devices.new_device"  # New entry for the plugin
 ```
 
-### Manual build procedure
+### 4. Manual build procedure
 
 Before sending the merge request, please try to build the package locally and make sure everything works
 
@@ -150,6 +150,9 @@ Before sending the merge request, please try to build the package locally and ma
 5. Test the package using the test code in the `tests/main.py` file
 
 ## Sample code
+
+> [!IMPORTANT]
+> Do not rename the `tests` folder or the `fake.py` file, as those are used for testing the library.
 
 Some sample commands are available in the `tests` folder.
 

@@ -1,8 +1,11 @@
-name: Validate Python Package when creating merge requests
+name: Validate Python Package and test code
 
 on:
   pull_request:
     types: [opened, synchronize]
+  push:
+    branches:
+      - main
   workflow_dispatch:
   workflow_call:
     secrets:
