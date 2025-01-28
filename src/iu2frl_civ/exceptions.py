@@ -1,3 +1,5 @@
+"""Custom exceptions for the CI-V communication module"""
+
 class CivCommandException(BaseException):
     """
     This exception is generated when the CI-V response is NG 

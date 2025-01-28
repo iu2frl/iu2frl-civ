@@ -7,6 +7,7 @@ try:
     from iu2frl_civ.device_factory import DeviceFactory
     from iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
     from iu2frl_civ.exceptions import CivTimeoutException
+    print("Using installed library")
 except ImportError:
     # Use this block if working with source code
     import sys
@@ -15,13 +16,15 @@ except ImportError:
     from src.iu2frl_civ.device_factory import DeviceFactory
     from src.iu2frl_civ.exceptions import CivTimeoutException
     from src.iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
+    print("Using local library")
 
 # Main program
 def main():
     """Connect to the transceiver and get some data"""
     print("Connecting to the transceiver")
-    radio = DeviceFactory.get_repository(DeviceType.Generic, "0x94", port="/dev/ttyUSB0", debug=True)
-
+    # Device initialization
+    radio = DeviceFactory.get_repository(radio_address="0x94", device_type=DeviceType.Generic, port="COM10", debug=True)
+    # Transceiver commands
     print(f"- Connected to the transceiver at {radio._ser.port} with baudrate {radio._ser.baudrate}bps")
     print ("- Turning on the transceiver")
     radio.power_on()
@@ -60,21 +63,21 @@ def main():
     print(f"- ALC meter: {radio.read_alc_meter():.1f}")
     print(f"- SWR meter: {radio.read_swr_meter():.1f}")
     print(f"- VD meter: {radio.read_vd_meter():.2f} V")
-    
+
     print("ICOM IP+ Feature")
     print("- Turning ON IP+")
     radio.set_ip_plus_function(True)
     time.sleep(2)
     print("- Turning OFF IP+")
     radio.set_ip_plus_function(False)
-    
+
     print("MF band attenuator")
     print("- Turning ON MF attenuator")
     radio.set_mf_band_attenuator(True)
     time.sleep(2)
     print("- Turning OFF MF attenuator")
     radio.set_mf_band_attenuator(False)
-    
+
     # print("Tuning the antenna")
     # print("- Turning ON the internal tuner")
     # radio.set_antenna_tuner(True)
@@ -84,7 +87,7 @@ def main():
     # time.sleep(10)
     # print("- Returning to RX mode")
     # radio.set_mox(False)
-    
+
     print("Memory and VFO modes")
     print("- Setting memory mode")
     for i in range(100):
@@ -97,7 +100,7 @@ def main():
     print("- Setting VFO B")
     radio.set_vfo_mode(VFOOperation.SELECT_VFO_B)
     time.sleep(1)
-    
+
     print("Scanning memories")
     radio.start_scan(ScanMode.SELECT_DF_SPAN_50KHZ)
     #radio.power_off() # works

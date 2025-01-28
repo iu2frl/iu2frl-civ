@@ -1,3 +1,5 @@
+"""IC-706 MK-II transceiver CI-V commands and responses"""
+
 from ..device_base import DeviceBase
 from ..utils import Utils
 from ..enums import OperatingMode, VFOOperation, TuningStep, DeviceType

@@ -1,17 +1,16 @@
 """
 Custom class to communicate with ICOM devices using CI-V protocol
+This class was built using the section 19 of the ICOM IC-7300 User Manual
 """
 
 from typing import Tuple
-from ..enums import *
-from ..exceptions import *
-from ..device_base import DeviceBase
-from ..utils import Utils
 import logging
 
+from ..enums import OperatingMode, SelectedFilter, VFOOperation, ScanMode, DeviceType
+from ..device_base import DeviceBase
+from ..utils import Utils
 
 logger = logging.getLogger(__name__)
-
 
 class GenericDevice(DeviceBase):
     """Create a CI-V object to interact with a generic the radio transceiver"""
@@ -914,7 +913,7 @@ class GenericDevice(DeviceBase):
         if not (1 <= width <= 100):
             raise ValueError("Width must be between 1 and 100")
 
-        width_bytes = self._encode_2_bytes_value(width - 1)
+        width_bytes = self.utils.encode_2_bytes_value(width - 1)
         reply = self.utils.send_command(b"\x1a\x05\x01\x90", data=width_bytes)
         return len(reply) > 0
 
@@ -923,13 +922,13 @@ class GenericDevice(DeviceBase):
         Sets the VOX delay.
 
         Args:
-             delay (int): The VOX delay in tenths of a second (0-20, representing 0.0 to 2.0 seconds).
+            delay (int): The VOX delay in tenths of a second (0-20, representing 0.0 to 2.0 seconds).
 
         Returns:
             bool: True if the command was successful, False otherwise.
 
         Raises:
-             ValueError: If the delay is not within the valid range (0 to 20).
+            ValueError: If the delay is not within the valid range (0 to 20).
         """
         if not (0 <= delay <= 20):
             raise ValueError("Delay must be between 0 and 20")
@@ -950,7 +949,7 @@ class GenericDevice(DeviceBase):
         Returns:
             bool: True if the command was successful, False otherwise.
 
-         Raises:
+        Raises:
             ValueError: If the value is not between 0 and 3
         """
         if not (0 <= voice_delay <= 3):
@@ -967,10 +966,10 @@ class GenericDevice(DeviceBase):
             filter (int, optional): The filter to select (1-3). Defaults to 1
 
         Returns:
-             bool: True if the command was successful, False otherwise.
+            bool: True if the command was successful, False otherwise.
 
         Raises:
-             ValueError: If the filter is not within the valid range (1 to 3)
+            ValueError: If the filter is not within the valid range (1 to 3)
         """
         if not (1 <= filter <= 3):
             raise ValueError("Filter must be between 1 and 3")

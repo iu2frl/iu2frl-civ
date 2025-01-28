@@ -4,6 +4,8 @@ Python library for communicating with iCOM radios using CI-V.
 
 ## Compatible devices
 
+Theorically speaking, all ICOM devices implementing the CI-V protocol should be compatible, in particular, the following devices were tested:
+
 - IC-7300 (fw: 1.42)
 - IC-706 MKII
 
@@ -19,12 +21,12 @@ Python library for communicating with iCOM radios using CI-V.
 
 ### 3. Creating the device object
 
-- Initialize the target device using `device = DeviceFactory.get_repository(DeviceType.Generic, "0x94", port="/dev/tty", debug=True)`
+- Initialize the target device using `radio = DeviceFactory.get_repository(radio_address="0x94", device_type=DeviceType.Generic, port="COM10", debug=True)`
 
 Where:
 
-- `DeviceType.Generic` is the type of device you want to control
-- `0x94` is the transceiver address
+- `device_type = DeviceType.Generic` is the type of device you want to control
+- `radio_address = 0x94` is the transceiver address
 
 Then, additional arguments can be passed:
 
@@ -42,7 +44,10 @@ Once the device object is created, any supported method can be used, for example
 - Power on the transceiver: `device.power_on()`
 - Get the current frequency: `device.read_operating_frequency()`
 
-## Device Types
+## Developer info
+
+### Device Types
+
 The `DeviceType` enum is a custom implementation for categorizing different types of transceivers.
 
 It currently includes:
@@ -50,7 +55,8 @@ It currently includes:
 - `Generic`:  A generic device type (tested with IC-7300).
 - `IC_706_MK2`: Represents the IC-706 MKII transceiver model.
 
-### Device Creation
+### Adding a new device to the library
+
 This process involves three main steps:
 
 - **Update DeviceType Enum**: A new entry will be added to the `DeviceType` enum to reflect the newly added device.
@@ -58,9 +64,11 @@ This process involves three main steps:
 - **Update pyproject.toml**: Add an entry in the `pyproject.toml` to register the plugin.
 
 #### 1. Add Device to the DeviceType Enum
+
 To include your new device in the `DeviceType` enum, update the `iu2frl_civ.enums` file by adding a new member for the new device.
 
-ex:
+For example:
+
 ```python
 from enum import Enum
 
@@ -74,13 +82,15 @@ class DeviceType(Enum):
  ...
 ```
 
-#### 2. Create a Device
+#### 2. Create a new Device class
+
 A plugin is a class that represents a specific device. To create a new plugin:
 
 - Create a new file in the `iu2frl_civ/devices/` directory.
 - Define a new class that extends `iu2frl_civ.device_base` for your device and add the required attributes (`device_type`, `device_class`)
 
-ex:
+for example:
+
 ```python
 # iu2frl_civ/devices/new_device.py
 
@@ -109,14 +119,19 @@ device_type = DeviceType.NewDevice
 device_class = NewDevice
 ```
 
-Note: If your device does not support certain functions (e.g., `power_on()`, `power_off()`, etc.), you do not need to implement them. The library will automatically raise a `NotImplementedError` when any unsupported method is called.
+**Note**: If your device does not support certain functions (e.g., `power_on()`, `power_off()`, etc.), you do not need to implement them. The library will automatically raise a `NotImplementedError` when any unsupported method is called.
 
 #### 3. Update pyproject.toml
+
+> [!IMPORTANT]
+> Do not edit the line with `version = "v0.0.0"` as this is automatically set by GitHub when building the new release
+
 Next, you need to register your new device in the `pyproject.toml` file so that it can be discovered and loaded as a plugin.
 
 Open your `pyproject.toml` file and add a new entry under the `[project.entry-points]` section to register your plugin.
 
-ex:
+for example:
+
 ```toml
 [project.entry-points."iu2frl_civ.devices"]
 ic706_mkii = "iu2frl_civ.devices.ic706_mkii"
@@ -124,10 +139,28 @@ generic = "iu2frl_civ.devices.generic"
 new_device = "iu2frl_civ.devices.new_device"  # New entry for the plugin
 ```
 
-## Some test code
+### Manual build procedure
+
+Before sending the merge request, please try to build the package locally and make sure everything works
+
+1. Move to the root directory of the project (where the `pyproject.toml` file is located)
+2. Install the build tools: `python -m pip install --upgrade build`
+3. Build the wheel package: `python -m build`
+4. Install the package that was just built: `pip install .\dist\iu2frl_civ-0.0.0.tar.gz`
+5. Test the package using the test code in the `tests/main.py` file
+
+## Sample code
 
 Some sample commands are available in the `tests/main.py` file
 
-## Original project
+## Project info
+
+### Original project
 
 This project was forked and then improved from: [siyka-au/pycom](https://github.com/siyka-au/pycom)
+
+### Contributors
+
+- [IU2FRL](https://github.com/iu2frl) as owner of the library and the initial implementation for IC-7300
+- [IU1LCU](https://www.qrz.com/db/IU1LCU) for extensive testing on the IC-7300
+- [ch3p4ll3](https://github.com/ch3p4ll3) for implementing the `DeviceFactory` code and testing on the IC-706 MKII

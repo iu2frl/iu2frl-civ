@@ -534,7 +534,7 @@ class DeviceBase(ABC):
             bool: True if the command was successful, False otherwise.
 
         Raises:
-           ValueError: If the interval is not within the valid range (1 to 15)
+            ValueError: If the interval is not within the valid range (1 to 15)
         """
         raise NotImplementedError()
 
@@ -602,27 +602,27 @@ class DeviceBase(ABC):
         """
         Sets the RX audio recording status for PTT Automatic Recording function.
 
-         Args:
-             rx_audio_time (int): The RX audio recording time.
-             0: OFF (records no RX audio)
-             1: Records the RX audio just before 5 sec.
-             2: Records the RX audio just before 10 sec.
-             3: Records the RX audio just before 15 sec.
+        Args:
+            rx_audio_time (int): The RX audio recording time.
+            0: OFF (records no RX audio)
+            1: Records the RX audio just before 5 sec.
+            2: Records the RX audio just before 10 sec.
+            3: Records the RX audio just before 15 sec.
 
-         Returns:
-             bool: True if the command was successful, False otherwise.
+        Returns:
+            bool: True if the command was successful, False otherwise.
 
-         Raises:
+        Raises:
             ValueError: If the value is not between 0 and 3
         """
         raise NotImplementedError()
 
     def set_qso_play_skip_time(self, skip_time: int) -> bool:
         """
-         Sets the QSO Play skip time
+        Sets the QSO Play skip time
 
-         Args:
-             skip_time (int): The skip time in seconds
+        Args:
+            skip_time (int): The skip time in seconds
                 0: 3 sec.
                 1: 5 sec.
                 2: 10 sec.
@@ -632,7 +632,7 @@ class DeviceBase(ABC):
             bool: True if the command was successful, False otherwise.
 
         Raises:
-             ValueError: If the skip time is not within the valid range
+            ValueError: If the skip time is not within the valid range
         """
         raise NotImplementedError()
 
@@ -671,13 +671,13 @@ class DeviceBase(ABC):
         Sets the VOX delay.
 
         Args:
-             delay (int): The VOX delay in tenths of a second (0-20, representing 0.0 to 2.0 seconds).
+            delay (int): The VOX delay in tenths of a second (0-20, representing 0.0 to 2.0 seconds).
 
         Returns:
             bool: True if the command was successful, False otherwise.
 
         Raises:
-             ValueError: If the delay is not within the valid range (0 to 20).
+            ValueError: If the delay is not within the valid range (0 to 20).
         """
         raise NotImplementedError()
 
@@ -695,7 +695,7 @@ class DeviceBase(ABC):
         Returns:
             bool: True if the command was successful, False otherwise.
 
-         Raises:
+        Raises:
             ValueError: If the value is not between 0 and 3
         """
         raise NotImplementedError()
@@ -709,9 +709,9 @@ class DeviceBase(ABC):
             filter (int, optional): The filter to select (1-3). Defaults to 1
 
         Returns:
-             bool: True if the command was successful, False otherwise.
+            bool: True if the command was successful, False otherwise.
 
         Raises:
-             ValueError: If the filter is not within the valid range (1 to 3)
+            ValueError: If the filter is not within the valid range (1 to 3)
         """
         raise NotImplementedError()
