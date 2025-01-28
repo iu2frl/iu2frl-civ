@@ -12,9 +12,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check local files
         run: |
-          dir -ls
+          ls -a
       - name: Call Test Code
-        uses: ./.github/workflows/test-code.yaml
+        uses: ./.github/workflows/test-code.yml
 
   pypi-publish:
     needs: [ call-test-code ]
