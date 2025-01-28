@@ -110,9 +110,9 @@ class DeviceFactory:
                     # Validate and register the plugin
                     if issubclass(device_class, DeviceBase):
                         cls._device_mapping[device_type] = device_class
-                        logging.error("Loaded plugin: %s (%s)", module_name, device_type)
+                        logging.debug()("Loaded plugin: %s (%s)", module_name, device_type)
                     else:
-                        logging.error("Invalid plugin class in %s: %s", module_name, device_class)
+                        logging.debug()("Invalid plugin class in %s: %s", module_name, device_class)
                 else:
                     logging.error("Module %s is missing 'device_type' or 'device_class'", module_name)
             except Exception as e:
@@ -152,7 +152,7 @@ class DeviceFactory:
             return True
 
     @staticmethod
-    def get_repository(radio_address: str, device_type: DeviceType = DeviceType.Generic, port="/dev/ttyUSB0", baudrate: int = 19200, debug=False, controller_address="0xE0", timeout=1, attempts=3, *args, **kwargs) -> DeviceBase:
+    def get_repository(radio_address: str, device_type: DeviceType = DeviceType.Generic, port="/dev/ttyUSB0", baudrate: int = 19200, debug=False, controller_address="0xE0", timeout=1, attempts=3, fake=False, *args, **kwargs) -> DeviceBase:
         """Create and return a device repository instance based on the specified device type.
         Args:
             device_type (DeviceType): The type of device to create.
@@ -187,6 +187,7 @@ class DeviceFactory:
             controller_address=controller_address,
             timeout=timeout,
             attempts=attempts,
+            fake=fake,
             *args,
             **kwargs,
         )

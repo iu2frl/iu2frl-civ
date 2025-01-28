@@ -2,13 +2,14 @@
 Custom class to communicate with ICOM devices using CI-V protocol
 """
 
-from typing import Tuple
-from .enums import *
-from .exceptions import *
-import serial
 from abc import ABC
 import sys
 import logging
+from typing import Tuple
+import serial
+
+from .enums import OperatingMode, SelectedFilter, TuningStep, VFOOperation, ScanMode
+from .fakeserial import FakeSerial
 
 
 logger = logging.getLogger(__name__)
@@ -21,10 +22,11 @@ class DeviceBase(ABC):
     _read_attempts: int  # How many attempts before giving up the read process
     transceiver_address: bytes  # Hexadecimal address of the radio transceiver
     controller_address: bytes  # Hexadecimal address of the controller (this code)
+    fake: bool  # If the device is fake or not (used for testing)
+    debug: bool  # If debug mode is enabled
 
-    def __init__(self, radio_address: str, port="/dev/ttyUSB0", baudrate: int = 19200, debug=False, controller_address="0xE0", timeout=1, attempts=3):
+    def __init__(self, radio_address: str, port="/dev/ttyUSB0", baudrate: int = 19200, debug=False, controller_address="0xE0", timeout=1, attempts=3, fake=False):
 
-        self._ser = serial.Serial(port, baudrate, timeout=timeout, dsrdtr=False)
         self._read_attempts = attempts
         # Validate the transceiver address
         if isinstance(radio_address, str) and str(radio_address).startswith("0x"):
@@ -36,12 +38,19 @@ class DeviceBase(ABC):
             self.controller_address = bytes.fromhex(controller_address[2:])
         else:
             raise ValueError("Controller address must be in hexadecimal format (0x00)")
+        # Open the serial port
+        if not fake:
+            self._ser = serial.Serial(port, baudrate, timeout=timeout, dsrdtr=False)
+        else:
+            self._ser = FakeSerial(self.transceiver_address, self.controller_address, baudrate, port)
         # Configure logging if needed
         if debug:
             logging.basicConfig(level=logging.DEBUG)
         else:
             sys.tracebacklimit = 0
         # Print some information if debug is enabled
+        self.fake = fake
+        self.debug = debug
         logger.debug("Opened port: %s", self._ser.name)
         logger.debug("Baudrate: %s bps", self._ser.baudrate)
 

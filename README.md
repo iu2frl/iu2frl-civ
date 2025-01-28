@@ -151,7 +151,10 @@ Before sending the merge request, please try to build the package locally and ma
 
 ## Sample code
 
-Some sample commands are available in the `tests/main.py` file
+Some sample commands are available in the `tests` folder.
+
+- `ic7300.py`: A simple test script that demonstrates how to use the library to communicate with the IC-7300 transceiver.
+- `fake.py`: A simple test script that fakes a connection to transceiver, used to validate builds.
 
 ## Project info
 

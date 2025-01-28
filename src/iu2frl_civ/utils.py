@@ -8,11 +8,22 @@ logger = logging.getLogger(__name__)
 
 
 class Utils:
-    def __init__(self, serial: Serial, transceiver_address, controller_address, read_attempts):
+    """List of utilities for the CI-V communication"""
+    _ser: Serial # Serial port object
+    transceiver_address: bytes # Transceiver address
+    controller_address: bytes # Controller address
+    _read_attempts: int # Number of read attempts
+    fake: bool = False # Fake mode
+    debug: bool = False # Debug mode
+    
+    def __init__(self, serial: Serial, transceiver_address, controller_address, read_attempts, debug=False, fake=False):
         self._ser = serial
         self.transceiver_address = transceiver_address
         self.controller_address = controller_address
         self._read_attempts = read_attempts
+        self.fake = fake
+        if debug:
+            logger.setLevel(logging.DEBUG)
 
     def encode_2_bytes_value(self, value: int) -> bytes:
         """
