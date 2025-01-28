@@ -1,13 +1,6 @@
 name: Validate Python Package and test code
 
-on:
-  workflow_dispatch:
-  workflow_call:
-    secrets:
-      token:
-        required: false
-
-jobs:
+runs:
 
   test-code:
     name: Test python code with local libraries
