@@ -9,12 +9,14 @@ runs:
         with:
           python-version: "3.x"
       - name: Install dependencies
+        shell: bash
         run: |
           python -m venv venv
           source ./venv/bin/activate
           pip install --upgrade pip
           pip install --upgrade pyserial==3.5 build
       - name: Build package
+        shell: bash
         run: |
           source ./venv/bin/activate
           python -m build
