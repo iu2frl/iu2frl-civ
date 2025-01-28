@@ -6,12 +6,14 @@ try:
     # Import the library installed using pip
     from iu2frl_civ.device_factory import DeviceFactory
     from iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
+    from iu2frl_civ.exceptions import CivTimeoutException
 except ImportError:
     # Use this block if working with source code
     import sys
     from pathlib import Path
     sys.path.append(str(Path(__file__).parent.parent))
     from src.iu2frl_civ.device_factory import DeviceFactory
+    from src.iu2frl_civ.exceptions import CivTimeoutException
     from src.iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
 
 # Main program
@@ -21,7 +23,19 @@ def main():
     radio = DeviceFactory.get_repository(DeviceType.Generic, "0x94", port="/dev/ttyUSB0", debug=True)
 
     print(f"- Connected to the transceiver at {radio._ser.port} with baudrate {radio._ser.baudrate}bps")
-
+    print ("- Turning on the transceiver")
+    radio.power_on()
+    print("- Waiting for the transceiver to be ready..", end="")
+    transceiver_address = b'\x00'
+    while transceiver_address == b'\x00':
+        print(".", end="")
+        try:
+            transceiver_address = radio.read_transceiver_id()
+        except CivTimeoutException:
+            pass
+    print()
+    print("Setting transceiver frequency and mode")
+    print(f"- Transceiver address: {transceiver_address}")
     new_frequency = 28202000
     print(f"- Setting new frequency to {new_frequency}")
     radio.send_operating_frequency(new_frequency)
