@@ -10,8 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check local files
+        run: |
+          dir -ls
       - name: Call Test Code
-        uses: ./test-code.yaml
+        uses: ./.github/workflows/test-code.yaml
 
   pypi-publish:
     needs: [ call-test-code ]
