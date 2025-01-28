@@ -6,19 +6,30 @@ on:
   workflow_dispatch:
 
 jobs:
-  call-test-code:
-    name: Call Test Python Code with Local Libraries and Build Wheel
+  call-validate-local:
+    name: Call Test Python Code with Local Libraries
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Check local files
         run: |
           ls -a
-      - name: Call Test Code
-        uses: ./.github/workflows/validate/
+      - name: Call action to validate local code
+        uses: ./.github/workflows/validate-local/
+  
+  call-validate-wheel:
+    name: Call Test Python Code to Build Wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check local files
+        run: |
+          ls -a
+      - name: Call action to validate wheel
+        uses: ./.github/workflows/validate-wheel/
 
   pypi-publish:
-    needs: [ call-test-code ]
+    needs: [ call-validate-local, call-validate-wheel ]
     name: Publish release to PyPI
     runs-on: ubuntu-latest
     environment:

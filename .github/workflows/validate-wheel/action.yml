@@ -1,0 +1,22 @@
+name: Validate Python Package and test code
+
+runs:
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source ./venv/bin/activate
+          pip install --upgrade pip
+          pip install --upgrade pyserial==3.5 build
+      - name: Build package
+        run: |
+          source ./venv/bin/activate
+          python -m build
+          pip install ./dist/iu2frl_civ-0.0.0.tar.gz
+          python3 ./tests/fake.py
