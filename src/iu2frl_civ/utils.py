@@ -23,7 +23,7 @@ class Utils:
     def send_command(self, command: bytes, data=b"", preamble=b"") -> bytes:
         """
         Send a command to the radio transceiver
-        
+
         Returns: the response from the transceiver
         """
         if command is None or not isinstance(command, bytes):
@@ -35,15 +35,7 @@ class Utils:
         # - the transceiver address
         # - the controller address
         # - 0xFD is the terminator
-        command_string = (
-            preamble
-            + b"\xfe\xfe"
-            + self.transceiver_address
-            + self.controller_address
-            + command
-            + data
-            + b"\xfd"
-        )
+        command_string = preamble + b"\xfe\xfe" + self.transceiver_address + self.controller_address + command + data + b"\xfd"
         logger.debug("Sending command: %s (length: %i)", self.bytes_to_string(command_string), len(command_string))
         # Send the command to the COM port
         self._ser.write(command_string)
@@ -56,19 +48,19 @@ class Utils:
             logger.debug("Received message: %s (length: %i)", self.bytes_to_string(reply), len(reply))
             # Check if we received an echo message
             if reply == command_string:
-                i -= 1 # Decrement cycles as it is just the echo back
+                i -= 1  # Decrement cycles as it is just the echo back
                 logger.debug("Ignoring echo message")
             # Check the response
             elif len(reply) > 2:
-                target_controller: bytes = reply[2].to_bytes(1, "big") # Target address of the reply from the transceiver
-                source_transceiver: bytes = reply[3].to_bytes(1, "big") # Source address of the reply from the transceiver
-                reply_code: bytes = reply[len(reply) - 2].to_bytes(1, "big") # Command reply status code
+                target_controller: bytes = reply[2].to_bytes(1, "big")  # Target address of the reply from the transceiver
+                source_transceiver: bytes = reply[3].to_bytes(1, "big")  # Source address of the reply from the transceiver
+                reply_code: bytes = reply[len(reply) - 2].to_bytes(1, "big")  # Command reply status code
                 # Check if the response is for us
                 if target_controller != self.controller_address or source_transceiver != self.transceiver_address:
-                    logger.debug("Ignoring message which is not for us " +
-                        f"(received: {self.bytes_to_string(source_transceiver)} -> {self.bytes_to_string(target_controller)} " + 
-                        f"but we are using: {self.bytes_to_string(self.transceiver_address)} -> {self.bytes_to_string(self.controller_address)})")
-                    i -= 1 # Decrement cycles to ignore messages not for us
+                    logger.debug(
+                        "Ignoring message which is not for us " + f"(received: {self.bytes_to_string(source_transceiver)} -> {self.bytes_to_string(target_controller)} " + f"but we are using: {self.bytes_to_string(self.transceiver_address)} -> {self.bytes_to_string(self.controller_address)})"
+                    )
+                    i -= 1  # Decrement cycles to ignore messages not for us
                 # Check the return code (0xFA is only returned in case of error)
                 elif reply_code == bytes.fromhex("FA"):  # 0xFA (not good)
                     logger.debug("Reply status: NG (%s)", self.bytes_to_string(reply_code))
@@ -79,7 +71,7 @@ class Utils:
                     break
             # Check if the respose was empty (timeout)
             else:
-                logger.debug("Serial communication timeout (%i/%i)", i+1, self._read_attempts)
+                logger.debug("Serial communication timeout (%i/%i)", i + 1, self._read_attempts)
         # Return the result to the user
         if not valid_reply:
             raise CivTimeoutException(f"Communication timeout occurred after {i+1} attempts")
@@ -128,20 +120,20 @@ class Utils:
         for point in points:
             if raw_value == point[0]:
                 return float(point[1])
-        
+
         # Perform linear interpolation between points
         for i in range(len(points) - 1):
             x0, y0 = points[i]
             x1, y1 = points[i + 1]
             if x0 < raw_value < x1:
                 return y0 + (y1 - y0) * (raw_value - x0) / (x1 - x0)
-        
+
         # Handle out-of-range values
         if raw_value < points[0][0]:
             return float(points[0][1])
         if raw_value > points[-1][0]:
             return float(points[-1][1])
-        
+
         return -1.0  # Return -1 if interpolation is not possible
 
     def convert_to_range(self, input_value, old_min, old_max, new_min, new_max):

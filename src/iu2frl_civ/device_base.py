@@ -18,21 +18,13 @@ class DeviceBase(ABC):
     """Create a CI-V object to interact with the radio transceiver"""
 
     _ser: serial.Serial  # Serial port object
-    _read_attempts: int # How many attempts before giving up the read process
+    _read_attempts: int  # How many attempts before giving up the read process
     transceiver_address: bytes  # Hexadecimal address of the radio transceiver
-    controller_address: bytes # Hexadecimal address of the controller (this code)
+    controller_address: bytes  # Hexadecimal address of the controller (this code)
 
-    def __init__(
-        self,
-        radio_address: str,
-        port = "/dev/ttyUSB0",
-        baudrate: int = 19200,
-        debug = False,
-        controller_address = "0xE0",
-        timeout = 1,
-        attempts = 3):
+    def __init__(self, radio_address: str, port="/dev/ttyUSB0", baudrate: int = 19200, debug=False, controller_address="0xE0", timeout=1, attempts=3):
 
-        self._ser = serial.Serial(port, baudrate, timeout = timeout, dsrdtr=False)
+        self._ser = serial.Serial(port, baudrate, timeout=timeout, dsrdtr=False)
         self._read_attempts = attempts
         # Validate the transceiver address
         if isinstance(radio_address, str) and str(radio_address).startswith("0x"):
@@ -52,27 +44,27 @@ class DeviceBase(ABC):
         # Print some information if debug is enabled
         logger.debug("Opened port: %s", self._ser.name)
         logger.debug("Baudrate: %s bps", self._ser.baudrate)
-    
+
     def set_tuning_step(self, ts: TuningStep) -> bytes:
         """
         Set the tuning step on the radio transceiver
-        
+
         Returns: the response from the transceiver
         """
         raise NotImplementedError()
-    
+
     def split_off(self) -> bytes:
         """
         Set split mode off on the radio transceiver
-        
+
         Returns: the response from the transceiver
         """
         raise NotImplementedError()
-    
+
     def split_on(self) -> bytes:
         """
         Set split mode on on the radio transceiver
-        
+
         Returns: the response from the transceiver
         """
         raise NotImplementedError()
@@ -80,7 +72,7 @@ class DeviceBase(ABC):
     def power_on(self) -> bytes:
         """
         Power on the radio transceiver
-        
+
         Returns: the response from the transceiver
         """
         raise NotImplementedError()
@@ -96,7 +88,7 @@ class DeviceBase(ABC):
     def read_transceiver_id(self) -> bytes:
         """
         Read the transceiver address
-        
+
         Returns: the address of the transceiver, 0x00 if error
         """
         raise NotImplementedError()
@@ -104,7 +96,7 @@ class DeviceBase(ABC):
     def read_operating_frequency(self) -> int:
         """
         Read the operating frequency
-        
+
         Returns: the currently tuned frequency in Hz
         """
         raise NotImplementedError()
@@ -112,7 +104,7 @@ class DeviceBase(ABC):
     def read_operating_mode(self) -> Tuple[str, str]:
         """
         Read the operating mode
-        
+
         Returns: a tuple containing
             - the current mode
             - the current filter
@@ -122,7 +114,7 @@ class DeviceBase(ABC):
     def send_operating_frequency(self, frequency_hz: int) -> bool:
         """
         Send the operating frequency
-        
+
         Returns: True if the frequency was properly sent
         """
         # Validate input
@@ -135,7 +127,7 @@ class DeviceBase(ABC):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the volume being set
         """
         raise NotImplementedError()
@@ -147,7 +139,7 @@ class DeviceBase(ABC):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the RF gain being set
         """
         raise NotImplementedError()
@@ -159,7 +151,7 @@ class DeviceBase(ABC):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the squelch being set
         """
         raise NotImplementedError()
@@ -171,7 +163,7 @@ class DeviceBase(ABC):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the NR being set
         """
         raise NotImplementedError()
@@ -183,7 +175,7 @@ class DeviceBase(ABC):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the NB being set
         """
         raise NotImplementedError()
@@ -204,7 +196,7 @@ class DeviceBase(ABC):
     def read_squelch_status(self):
         """
         Read noise or S-meter squelch status
-        
+
         Returns: True if squelch is enabled (audio is silent)
         """
         raise NotImplementedError()
@@ -212,14 +204,12 @@ class DeviceBase(ABC):
     def read_squelch_status2(self):
         """
         Read various squelch function’s status
-        
+
         Returns: True if squelch is enabled (audio is silent)
         """
         raise NotImplementedError()
 
-    def set_operating_mode(
-        self, mode: OperatingMode, filter: SelectedFilter = SelectedFilter.FIL1
-    ):
+    def set_operating_mode(self, mode: OperatingMode, filter: SelectedFilter = SelectedFilter.FIL1):
         """Sets the operating mode and filter."""
         # Command 0x06 with mode and filter data
         raise NotImplementedError()
@@ -277,13 +267,13 @@ class DeviceBase(ABC):
     def read_id_meter(self) -> float:
         """
         Read the Id meter level.
-        
+
         Raw values from CI-V:
         - 0: 0A,
         - 97: 10A,
         - 146: 15A,
         - 241: 25A
-        
+
         Returns: the current in Ampere being mesured on the amplifier
         """
         raise NotImplementedError()
@@ -341,7 +331,7 @@ class DeviceBase(ABC):
     def start_scan(self, scan_type: ScanMode = ScanMode.SELECT_DF_SPAN_100KHZ):
         """
         Starts scanning, different types available according to the sub command
-        
+
         Note: this always returns some error
         """
         raise NotImplementedError()
@@ -383,7 +373,7 @@ class DeviceBase(ABC):
 
     def read_band_edge_frequencies(self):
         """
-        Reads the band edge frequencies. 
+        Reads the band edge frequencies.
         This command requires further implementation due to its complex data structure
         """
         raise NotImplementedError()
@@ -435,9 +425,7 @@ class DeviceBase(ABC):
         """Sets the scope reference level, range is -20.0 to +20.0 dB in 0.5 dB steps"""
         raise NotImplementedError()
 
-    def set_scope_fixed_edge_frequencies(
-        self, edge_number: int, lower_frequency: int, higher_frequency: int
-    ):
+    def set_scope_fixed_edge_frequencies(self, edge_number: int, lower_frequency: int, higher_frequency: int):
         """Sets the fixed edge frequencies for the scope
         edge_number is 1, 2, or 3
         lower_frequency and higher_frequency are in Hz

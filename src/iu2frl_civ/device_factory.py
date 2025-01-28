@@ -11,6 +11,7 @@ from .device_base import DeviceBase
 
 logger = logging.getLogger(__name__)
 
+
 class DeviceFactory:
     """
     A factory class for creating and managing radio device instances.
@@ -42,7 +43,7 @@ class DeviceFactory:
         ...     port="/dev/ttyUSB0"
         ... )
     """
-    
+
     _device_mapping: Dict[DeviceType, Type[DeviceBase]] = {}
 
     @classmethod
@@ -73,7 +74,7 @@ class DeviceFactory:
                     logger.error("Plugin %s is missing 'device_type' or 'device_class'", entry_point.name)
             except Exception as e:
                 logger.error("Failed to load plugin %s: %s", entry_point.name, e)
-    
+
     @classmethod
     def _load_local_plugins(cls, package: str) -> None:
         """
@@ -84,7 +85,7 @@ class DeviceFactory:
         """
         # Convert package to a directory path
         package_path = package.replace(".", os.sep)
-        
+
         # Ensure the package is in sys.path
         if package_path not in sys.path:
             sys.path.append(package_path)
@@ -121,10 +122,10 @@ class DeviceFactory:
     def is_local(cls, module_name: str) -> bool:
         """
         Determine if a module is loaded from a local directory or a pip-installed package.
-        
+
         Args:
             module_name (str): The name of the module to check.
-            
+
         Returns:
             bool: True if the module is loaded from a local directory, False if from pip.
         """
@@ -151,19 +152,7 @@ class DeviceFactory:
             return True
 
     @staticmethod
-    def get_repository(
-        radio_address: str,
-        device_type: DeviceType = DeviceType.Generic,
-        port = "/dev/ttyUSB0",
-        baudrate: int = 19200,
-        debug = False,
-        controller_address = "0xE0",
-        timeout = 1,
-        attempts = 3,
-        *args,
-        **kwargs
-        ) -> DeviceBase:
-        
+    def get_repository(radio_address: str, device_type: DeviceType = DeviceType.Generic, port="/dev/ttyUSB0", baudrate: int = 19200, debug=False, controller_address="0xE0", timeout=1, attempts=3, *args, **kwargs) -> DeviceBase:
         """Create and return a device repository instance based on the specified device type.
         Args:
             device_type (DeviceType): The type of device to create.

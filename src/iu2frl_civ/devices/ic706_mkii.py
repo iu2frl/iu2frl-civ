@@ -7,6 +7,7 @@ from ..enums import OperatingMode, VFOOperation, TuningStep, DeviceType
 
 class IC706MKII(DeviceBase):
     """Create a CI-V object to interact with an IC-706 MK-II transceiver"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -14,17 +15,12 @@ class IC706MKII(DeviceBase):
         self._ser.rts = False
         self._ser.dtr = False
 
-        self.utils = Utils(
-            self._ser,
-            self.transceiver_address,
-            self.controller_address,
-            self._read_attempts
-        )
+        self.utils = Utils(self._ser, self.transceiver_address, self.controller_address, self._read_attempts)
 
     def read_operating_frequency(self) -> int:
         """
         Read the operating frequency
-        
+
         Returns: the currently tuned frequency in Hz
         """
         try:
@@ -36,14 +32,14 @@ class IC706MKII(DeviceBase):
     def read_operating_mode(self) -> OperatingMode:
         """
         Read the operating mode
-        
+
         Returns: the current mode
         """
         reply = self.utils.send_command(b"\x04")
         if len(reply) == 8:
             mode = OperatingMode(int(reply[5:6].hex()))
             return mode
-    
+
     def set_operating_mode(self, mode: OperatingMode):
         """Sets the operating mode and filter."""
         # Command 0x06 with mode and filter data
@@ -53,7 +49,7 @@ class IC706MKII(DeviceBase):
     def send_operating_frequency(self, frequency_hz: int | float) -> bool:
         """
         Send the operating frequency
-        
+
         Returns: True if the frequency was properly sent
         """
         if isinstance(frequency_hz, float):  # fix for using scientific notation ex: 14.074e6
@@ -71,14 +67,14 @@ class IC706MKII(DeviceBase):
             return True
         else:
             return False
-    
+
     def set_vfo_mode(self, vfo_mode: VFOOperation = VFOOperation.SELECT_VFO_A):
         """Sets the VFO mode."""
         if vfo_mode in VFOOperation:
             self.utils.send_command(b"\x07", data=vfo_mode.value)
         else:
             raise ValueError("Invalid vfo_mode")
-    
+
     def stop_scan(self):
         """Stops the scan."""
         self.utils.send_command(b"\x0E\x00")
@@ -86,7 +82,7 @@ class IC706MKII(DeviceBase):
     def start_scan(self):
         """
         Starts scanning, different types available according to the sub command
-        
+
         Note: this always returns some error
         """
         self.utils.send_command(b"\x0E\x01")
@@ -98,7 +94,7 @@ class IC706MKII(DeviceBase):
         # 0001 to 0109 Select the Memory channel *(0001=M-CH01, 0099=M-CH99)
         # 0100 Select program scan edge channel P1
         # 0101 Select program scan edge channel P2
-        
+
         if 0 < memory_channel < 100:
             hex_list = ["0x00"]
         elif memory_channel in [100, 101]:
@@ -127,7 +123,8 @@ class IC706MKII(DeviceBase):
     def split_on(self) -> bytes:
         return self.utils.send_command(b"\x0F", b"\x01")
 
-
     # Required attributes for plugin discovery
+
+
 device_type = DeviceType.IC_706_MK2
 device_class = IC706MKII

@@ -12,22 +12,19 @@ from ..utils import Utils
 
 logger = logging.getLogger(__name__)
 
+
 class GenericDevice(DeviceBase):
     """Create a CI-V object to interact with a generic the radio transceiver"""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.utils = Utils(
-            self._ser,
-            self.transceiver_address,
-            self.controller_address,
-            self._read_attempts
-        )
+        self.utils = Utils(self._ser, self.transceiver_address, self.controller_address, self._read_attempts)
 
     def power_on(self) -> bytes:
         """
         Power on the radio transceiver
-        
+
         Returns: the response from the transceiver
         """
         if self._ser.baudrate == 115200:
@@ -56,18 +53,18 @@ class GenericDevice(DeviceBase):
     def read_transceiver_id(self) -> bytes:
         """
         Read the transceiver address
-        
+
         Returns: the address of the transceiver, 0x00 if error
         """
         reply = self.utils.send_command(b"\x19\x00")
         if len(reply) > 0:
             return reply[-2:-1]
-        return b'\x00'
+        return b"\x00"
 
     def read_operating_frequency(self) -> int:
         """
         Read the operating frequency
-        
+
         Returns: the currently tuned frequency in Hz
         """
         try:
@@ -79,7 +76,7 @@ class GenericDevice(DeviceBase):
     def read_operating_mode(self) -> Tuple[str, str]:
         """
         Read the operating mode
-        
+
         Returns: a tuple containing
             - the current mode
             - the current filter
@@ -95,12 +92,12 @@ class GenericDevice(DeviceBase):
     def send_operating_frequency(self, frequency_hz: int | float) -> bool:
         """
         Send the operating frequency
-        
+
         Returns: True if the frequency was properly sent
         """
         if isinstance(frequency_hz, float):  # fix for using scientific notation ex: 14.074e6
             frequency_hz = int(frequency_hz)
-        
+
         # Validate input
         if not (10_000 <= frequency_hz <= 74_000_000):  # IC-7300 frequency range in Hz
             raise ValueError("Frequency must be between 10 kHz and 74 MHz")
@@ -121,7 +118,7 @@ class GenericDevice(DeviceBase):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the volume being set
         """
         reply = self.utils.send_command(b"\x14\x01")
@@ -137,7 +134,7 @@ class GenericDevice(DeviceBase):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the RF gain being set
         """
         reply = self.utils.send_command(b"\x14\x02")
@@ -153,7 +150,7 @@ class GenericDevice(DeviceBase):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the squelch being set
         """
         reply = self.utils.send_command(b"\x14\x03")
@@ -169,7 +166,7 @@ class GenericDevice(DeviceBase):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the NR being set
         """
         reply = self.utils.send_command(b"\x14\x06")
@@ -185,7 +182,7 @@ class GenericDevice(DeviceBase):
         Raw values from CI-V
         0: min
         255: max
-        
+
         Returns: The percentage of the NB being set
         """
         reply = self.utils.send_command(b"\x14\x12")
@@ -213,7 +210,7 @@ class GenericDevice(DeviceBase):
     def read_squelch_status(self):
         """
         Read noise or S-meter squelch status
-        
+
         Returns: True if squelch is enabled (audio is silent)
         """
         reply = self.utils.send_command(b"\x15\x01")
@@ -222,15 +219,13 @@ class GenericDevice(DeviceBase):
     def read_squelch_status2(self):
         """
         Read various squelch function’s status
-        
+
         Returns: True if squelch is enabled (audio is silent)
         """
         reply = self.utils.send_command(b"\x15\x05")
         return not bool(reply[6])
 
-    def set_operating_mode(
-        self, mode: OperatingMode, filter: SelectedFilter = SelectedFilter.FIL1
-    ):
+    def set_operating_mode(self, mode: OperatingMode, filter: SelectedFilter = SelectedFilter.FIL1):
         """Sets the operating mode and filter."""
         # Command 0x06 with mode and filter data
         data = bytes([mode.value, filter.value])
@@ -319,13 +314,13 @@ class GenericDevice(DeviceBase):
     def read_id_meter(self) -> float:
         """
         Read the Id meter level.
-        
+
         Raw values from CI-V:
         - 0: 0A,
         - 97: 10A,
         - 146: 15A,
         - 241: 25A
-        
+
         Returns: the current in Ampere being mesured on the amplifier
         """
         reply = self.utils.send_command(b"\x15\x16")
@@ -400,7 +395,7 @@ class GenericDevice(DeviceBase):
         # 0001 to 0109 Select the Memory channel *(0001=M-CH01, 0099=M-CH99)
         # 0100 Select program scan edge channel P1
         # 0101 Select program scan edge channel P2
-        
+
         if 0 < memory_channel < 100:
             hex_list = ["0x00"]
         elif memory_channel in [100, 101]:
@@ -416,7 +411,7 @@ class GenericDevice(DeviceBase):
     def start_scan(self, scan_type: ScanMode = ScanMode.SELECT_DF_SPAN_100KHZ):
         """
         Starts scanning, different types available according to the sub command
-        
+
         Note: this always returns some error
         """
         if scan_type in ScanMode:
@@ -482,7 +477,7 @@ class GenericDevice(DeviceBase):
 
     def read_band_edge_frequencies(self):
         """
-        Reads the band edge frequencies. 
+        Reads the band edge frequencies.
         This command requires further implementation due to its complex data structure
         """
         raise NotImplementedError()
@@ -583,9 +578,7 @@ class GenericDevice(DeviceBase):
         else:
             self.utils.send_command(b"\x27\x19", data=b"\x01" + level_bytes)
 
-    def set_scope_fixed_edge_frequencies(
-        self, edge_number: int, lower_frequency: int, higher_frequency: int
-    ):
+    def set_scope_fixed_edge_frequencies(self, edge_number: int, lower_frequency: int, higher_frequency: int):
         """Sets the fixed edge frequencies for the scope
         edge_number is 1, 2, or 3
         lower_frequency and higher_frequency are in Hz
@@ -593,9 +586,7 @@ class GenericDevice(DeviceBase):
         if edge_number not in [1 - 3]:
             raise ValueError("Edge number must be 1, 2, or 3")
 
-        if not (10_000 <= lower_frequency <= 74_000_000) or not (
-            10_000 <= higher_frequency <= 74_000_000
-        ):
+        if not (10_000 <= lower_frequency <= 74_000_000) or not (10_000 <= higher_frequency <= 74_000_000):
             raise ValueError("Frequency must be between 10 kHz and 74 MHz")
 
         data = b""
@@ -642,12 +633,7 @@ class GenericDevice(DeviceBase):
         while len(name_bytes) < 10:
             name_bytes += b"\x20"
 
-        data = (
-            channel_bytes
-            + b"\x00"
-            + b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-            + name_bytes
-        )
+        data = channel_bytes + b"\x00" + b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" + name_bytes
 
         self.utils.send_command(b"\x1A\x00", data=data)
 

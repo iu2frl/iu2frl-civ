@@ -3,12 +3,14 @@ from enum import Enum
 
 class DeviceType(Enum):
     """Custom implementation for different transceiver"""
+
     Generic = 0
     IC_706_MK2 = 1
 
 
 class OperatingMode(Enum):
     """Operating mode of the radio transceiver"""
+
     LSB = 0
     USB = 1
     AM = 2
@@ -22,6 +24,7 @@ class OperatingMode(Enum):
 
 class SelectedFilter(Enum):
     """The filter being selected on the transceiver"""
+
     FIL1 = 1
     FIL2 = 2
     FIL3 = 3
@@ -29,12 +32,14 @@ class SelectedFilter(Enum):
 
 class SquelchStatus(Enum):
     """Status of the squelch of the transceiver"""
+
     CLOSED = 0
     OPEN = 1
 
 
 class ScanMode(Enum):
     """Scan mode of the transceiver"""
+
     STOP = b"\x00"  # Stop scan
     MEMORY = b"\x01"  # Programmed/memory scan start
     PROGRAMMED = b"\x02"  # Programmed scan start
@@ -59,6 +64,7 @@ class ScanMode(Enum):
 
 class VFOOperation(Enum):
     """VFO operation commands"""
+
     SELECT_VFO_A = b"\x00"  # Select VFO A
     SELECT_VFO_B = b"\x01"  # Select VFO B
     EQUALIZE_VFO_A_B = b"\xA0"  # Equalize VFO A and VFO B
