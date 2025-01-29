@@ -50,13 +50,17 @@ class DeviceType(Enum):
 
 A plugin is a class that represents a specific device. To create a new plugin:
 
-- Create a new file in the `iu2frl_civ/devices/` directory.
-- Define a new class that extends `iu2frl_civ.device_base` for your device and add the required attributes (`device_type`, `device_class`)
+- Create a new file in the `iu2frl_civ/devices/` directory, for example: `iu2frl_civ/devices/newdevice.py`.
+  - Naming convention: `devicename_revision.py`, for example: `ic706_mkii.py` (IC-706 with MKII revision) or `ic7300.py` (IC-7300 with no revision)
+- Define a new class in the new python file that extends `iu2frl_civ.device_base` for your device and add the required attributes at the end of the file (`device_type`, `device_class`, see below)
 
-for example:
+The result should be something like this:
 
 ```python
-# iu2frl_civ/devices/new_device.py
+"""
+Custom class to communicate with ICOM devices using CI-V protocol
+This class was built using the section XX of the ICOM AA-BCDEF User Manual
+"""
 
 from ..device_base import DeviceBase  # Import the base class
 
@@ -64,26 +68,63 @@ class NewDevice(DeviceBase):
     """Representation of the new device."""
     
     def __init__(self, *args, **kwargs):
+        # Inherits the setup procedure from the prototype class
         super().__init__(*args, **kwargs)
-
+        # Pass the parameters to the utils library to start the device
         self.utils = Utils(
             self._ser,
             self.transceiver_address,
             self.controller_address,
-            self._read_attempts
+            self._read_attempts, 
+            debug=self.debug, 
+            fake=self.fake
         )
-    
-    def read_operating_frequency(self) -> int:
-        # Implement device-specific logic here
-        pass
 
+    # Implement device-specific methods here (see topic below)
+    [...]
 
 # Required attributes for plugin discovery
 device_type = DeviceType.NewDevice # As specified in the DeviceType enum
 device_class = NewDevice # Name of the class defined above
 ```
 
-**Note**: If your device does not support certain functions (e.g., `power_on()`, `power_off()`, etc.), you do not need to implement them. The library will automatically raise a `NotImplementedError` when any unsupported method is called.
+> [!TIP]
+> If your device does not support certain functions (e.g., `power_on()`, `power_off()`, etc.), you do not need to implement them. The library will automatically raise a `NotImplementedError` when any unsupported method is called.
+
+##### Adding methods to the new device
+
+The CI-V documentation will report all the required command bytes to trigger a specific action, for example to start the tuning procedure on an IC-7300, the manual states:
+
+| Cmd. | Sub cmd. | Data |            Description          |
+|------|----------|------|---------------------------------|
+| 0x1C |   0x01   | 0x00 | Send/read the antenna tuner OFF |
+| 0x1C |   0x01   | 0x01 | Send/read the antenna tuner ON  |
+| 0x1C |   0x02   | 0x02 | Send/read tuning procedure      |
+
+We can see that the transceiver starts the tuning process when receiving the command bytes `0x1C, 0x01` and the data byte `0x02`, this translates to:
+
+```python
+[...]
+
+class NewDevice(DeviceBase):
+    """Representation of the new device."""
+
+    [...]
+
+    def tune_antenna_tuner(self) -> bool:
+      """
+      Starts the antenna tuner tuning process.
+      
+      Returns:
+        True: if command was accepted from the transceiver
+
+      Exceptions:
+        CivTimeoutException: if transceiver does not reply within the specified time
+      """
+      return len(self.utils.send_command(b"\x1C\x01", b"\x02")) > 0
+
+    [...]
+```
 
 #### 3. Update pyproject.toml
 
@@ -101,22 +142,26 @@ for example:
 generic = "iu2frl_civ.devices.generic"
 ic7300 = "iu2frl_civ.devices.ic7300"
 ic706_mkii = "iu2frl_civ.devices.ic706_mkii"
-new_device = "iu2frl_civ.devices.new_device"  # New entry for the plugin
+newdevice = "iu2frl_civ.devices.newdevice"  # New device that was just added
 ```
 
 ### 4. Create a test script
 
 To test the new device, create a new test script in the `tests` folder. This script should import the new device and test its functionality. Testing should be done without building the package.
 
-- You can copy the `fake.py` script as a template.
-- If you have a real device, you can test the new device by running the test script and checking the output.
-  - Make sure the `Fake` parameter is set to **False** in the `DeviceFactory.get_repository` method.
-- Test the new device by running the test script and checking the output (without building the package yet).
-  - Make sure to uninstall any version of the library that was previously installed using `pip uninstall iu2frl-civ`
+> [!WARNING]
+> Make sure to uninstall any version of the library that was previously installed using `pip uninstall iu2frl-civ` or the newly created device will be ignored
+
+- Copy the `fake.py` script as a template and paste it as `newdevice.py` in the `tests` folder.
+- Test the new device by running the `newdevice.py` test script and checking the output (without building the package yet).
+  - If you have a real device, you can test the new device by running the test script and checking the output by setting the `Fake` parameter to **False** in the `DeviceFactory.get_repository` method.
 
 ### 5. Manual build procedure
 
 Before sending the merge request, please try to build the package locally and make sure everything works
+
+> [!WARNING]
+> Make sure to uninstall any version of the library that was previously installed using `pip uninstall iu2frl-civ` or the newly created device will be ignored
 
 1. Move to the root directory of the project (where the `pyproject.toml` file is located)
 2. Install the build tools: `python -m pip install --upgrade build`
