@@ -12,8 +12,7 @@ logging.getLogger().setLevel(logging.WARNING)
 try:
     # Import the library installed using pip
     from iu2frl_civ.device_factory import DeviceFactory
-    from iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
-    from iu2frl_civ.exceptions import CivTimeoutException
+    from iu2frl_civ.enums import DeviceType
 
     print("Calling test using installed library")
 except ImportError:
@@ -22,8 +21,7 @@ except ImportError:
 
     sys.path.append(str(Path(__file__).parent.parent))
     from src.iu2frl_civ.device_factory import DeviceFactory
-    from src.iu2frl_civ.exceptions import CivTimeoutException
-    from src.iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
+    from src.iu2frl_civ.enums import DeviceType
 
     print("Calling test using local library files")
 
