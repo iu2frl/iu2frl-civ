@@ -4,7 +4,7 @@ from serial import Serial
 from .exceptions import CivCommandException, CivTimeoutException
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("iu2frl-civ")
 
 
 class Utils:

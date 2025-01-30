@@ -16,9 +16,13 @@ runs:
         source ./venv/bin/activate
         pip install --upgrade pip
         pip install pyserial==3.5
-    - name: Run tests
+    - name: Run methods validation
       shell: bash
       run: |
         source ./venv/bin/activate
-        dir -ls
-        python3 ./tests/fake.py
+        python3 ./tests/methods_validation.py
+    - name: Run generic device validation
+      shell: bash
+      run: |
+        source ./venv/bin/activate
+        python3 ./tests/fake_generic.py

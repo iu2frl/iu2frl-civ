@@ -59,13 +59,13 @@ Some commands have an expected value to be returned (like the `device.read_opera
 ## Sample code
 
 > [!IMPORTANT]
-> Do not rename the `tests` folder or the `fake.py` file, as those are used for testing the library.
+> Do not rename the `tests` folder or the `fake_generic.py` file, as those are used for testing the library.
 
 Some sample commands are available in the `tests` folder.
 
 - `ic7300.py`: A simple test script that demonstrates how to use the library to communicate with the IC-7300 transceiver.
 - `ic706_mkii.py`: A simple test script that demonstrates how to use the library to communicate with the IC-706 MKII transceiver.
-- `fake.py`: A simple test script that fakes a connection to transceiver, used to validate builds.
+- `fake_generic.py`: A simple test script that fakes a connection to transceiver, used to validate builds.
 
 ## Developer info
 

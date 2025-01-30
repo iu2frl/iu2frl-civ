@@ -21,5 +21,19 @@ runs:
       run: |
         source ./venv/bin/activate
         python -m build
+    - name: Install package
+      shell: bash
+      run: |
+        source ./venv/bin/activate
+        python -m build
         pip install ./dist/iu2frl_civ-0.0.0.tar.gz
-        python3 ./tests/fake.py
+    - name: Run methods validation
+      shell: bash
+      run: |
+        source ./venv/bin/activate
+        python3 ./tests/methods_validation.py
+    - name: Run generic device validation
+      shell: bash
+      run: |
+        source ./venv/bin/activate
+        python3 ./tests/fake_generic.py

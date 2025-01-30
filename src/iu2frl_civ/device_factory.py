@@ -10,7 +10,7 @@ import logging
 from .enums import DeviceType
 from .device_base import DeviceBase
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("iu2frl-civ")
 
 
 class DeviceFactory:
@@ -94,9 +94,8 @@ class DeviceFactory:
         # Locate the package's directory
         package_dir = os.path.join(os.getcwd(), package_path)
         if not os.path.isdir(package_dir):
-            logger.warning("Cannot find the devices folder in %s (are you using a Jupyter Notebook?), trying with a different approach", package_dir)
+            logger.debug("Cannot find the devices folder in %s (are you using a Jupyter Notebook?), trying with a different approach", package_dir)
             package_dir = os.path.abspath(f"../{package_path}")
-            logger.warning(package_dir)
             if not os.path.isdir(package_dir):
                 raise ValueError(f"Package path not found: {package_dir}")
 
@@ -150,10 +149,10 @@ class DeviceFactory:
                     # If it's not in site-packages, it's likely local
                     return True
             else:
-                print(f"Module '{module_name}' has no __file__ attribute")
+                logger.debug(f"Module '{module_name}' has no __file__ attribute")
                 return False
         except ModuleNotFoundError:
-            print(f"Module '{module_name}' not found.")
+            logger.debug(f"Module '{module_name}' not found.")
             return True
 
     @staticmethod

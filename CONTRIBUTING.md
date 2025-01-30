@@ -37,7 +37,7 @@ Thank you for your interest in contributing to the IU2FRL ICOM CI-V Python Libra
 This chapter covers the steps required for developers to add new components to this library. Please review all the points before starting editing the library and submitting a MR.
 
 > [!IMPORTANT]
-> Do not rename the `tests` folder or the `fake.py` file, as those are used for testing the library.
+> Do not rename the `tests` folder or the `fake_generic.py` file, as those are used for testing the library.
 
 ### Device Types
 
@@ -184,7 +184,7 @@ To test the new device, create a new test script in the `tests` folder. This scr
 > [!WARNING]
 > Make sure to uninstall any version of the library that was previously installed using `pip uninstall iu2frl-civ` or the newly created device will be ignored
 
-- Copy the `fake.py` script as a template and paste it as `newdevice.py` in the `tests` folder.
+- Copy the `fake_generic.py` script as a template and paste it as `newdevice.py` in the `tests` folder.
 - Test the new device by running the `newdevice.py` test script and checking the output (without building the package yet).
   - If you have a real device, you can test the new device by running the test script and checking the output by setting the `Fake` parameter to **False** in the `DeviceFactory.get_repository` method.
 
@@ -199,7 +199,7 @@ Before sending the merge request, please try to build the package locally and ma
 2. Install the build tools: `python -m pip install --upgrade build`
 3. Build the wheel package: `python -m build`
 4. Install the package that was just built: `pip install ./dist/iu2frl_civ-0.0.0.tar.gz`
-5. Test the package using the test code in the `tests/fake.py` file (the script will now use the newly built package)
+5. Test the package using the test code in the `tests/fake_generic.py` file (the script will now use the newly built package)
 6. Test the package using the code in the test file you just created
 
 We appreciate your contributions and look forward to collaborating with you!

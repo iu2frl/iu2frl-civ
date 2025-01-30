@@ -123,8 +123,7 @@ class IC706MKII(DeviceBase):
     def split_on(self) -> bytes:
         return self.utils.send_command(b"\x0F", b"\x01")
 
-    # Required attributes for plugin discovery
 
-
+# Required attributes for plugin discovery
 device_type = DeviceType.IC_706_MK2
 device_class = IC706MKII

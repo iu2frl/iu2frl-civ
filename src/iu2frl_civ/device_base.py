@@ -12,7 +12,7 @@ from .enums import OperatingMode, SelectedFilter, TuningStep, VFOOperation, Scan
 from .fakeserial import FakeSerial
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("iu2frl-civ")
 
 
 class DeviceBase(ABC):

@@ -10,7 +10,7 @@ from ..enums import OperatingMode, SelectedFilter, VFOOperation, ScanMode, Devic
 from ..device_base import DeviceBase
 from ..utils import Utils
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("iu2frl-civ")
 
 
 class IC7300(DeviceBase):

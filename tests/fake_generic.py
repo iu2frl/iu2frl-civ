@@ -104,6 +104,8 @@ def main():
 
     print("Scanning memories")
     radio.start_scan(ScanMode.SELECT_DF_SPAN_50KHZ)
+    
+    radio.read_band_edge_frequencies()
     # radio.power_off() # works
 
 
