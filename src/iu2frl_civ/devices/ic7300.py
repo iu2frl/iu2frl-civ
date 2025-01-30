@@ -16,7 +16,7 @@ logger = logging.getLogger("iu2frl-civ")
 class IC7300(DeviceBase):
     """Create a CI-V object to interact with a generic the radio transceiver"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.utils = Utils(self._ser, self.transceiver_address, self.controller_address, self._read_attempts, debug=self.debug, fake=self.fake)
@@ -27,18 +27,9 @@ class IC7300(DeviceBase):
 
         Returns: the response from the transceiver
         """
-        if self._ser.baudrate == 115200:
-            wakeup_preamble_count = 150
-        elif self._ser.baudrate == 57600:
-            wakeup_preamble_count = 75
-        elif self._ser.baudrate == 38400:
-            wakeup_preamble_count = 50
-        elif self._ser.baudrate == 19200:
-            wakeup_preamble_count = 25
-        elif self._ser.baudrate == 9600:
-            wakeup_preamble_count = 13
-        else:
-            wakeup_preamble_count = 7
+        # Preamble counts for different baudrates
+        preamble_counts = {115200: 150, 57600: 75, 38400: 50, 19200: 25, 9600: 13}
+        wakeup_preamble_count = preamble_counts.get(self._ser.baudrate, 7)
         logger.debug("Sending power-on command with %i wakeup preambles", wakeup_preamble_count)
         return self.utils.send_command(b"\x18\x01", preamble=b"\xfe" * wakeup_preamble_count)
 
@@ -225,10 +216,10 @@ class IC7300(DeviceBase):
         reply = self.utils.send_command(b"\x15\x05")
         return not bool(reply[6])
 
-    def set_operating_mode(self, mode: OperatingMode, filter: SelectedFilter = SelectedFilter.FIL1):
+    def set_operating_mode(self, mode: OperatingMode, new_filter: SelectedFilter = SelectedFilter.FIL1):
         """Sets the operating mode and filter."""
         # Command 0x06 with mode and filter data
-        data = bytes([mode.value, filter.value])
+        data = bytes([mode.value, new_filter.value])
         self.utils.send_command(b"\x06", data=data)
 
     def read_po_meter(self) -> float:
@@ -420,9 +411,9 @@ class IC7300(DeviceBase):
         level_bytes = self.utils.encode_int_to_icom_bytes(level)
         self.utils.send_command(b"\x1A\x05\x00\x81", data=level_bytes)
 
-    def set_display_font(self, round: bool = True):
+    def set_display_font(self, round_font: bool = True):
         """Set the display font"""
-        if round:
+        if round_font:
             self.utils.send_command(b"\x1A\x05\x00\x83", b"\x01")
         else:
             self.utils.send_command(b"\x1A\x05\x00\x83", b"\x00")
@@ -529,7 +520,7 @@ class IC7300(DeviceBase):
         reply = self.utils.send_command(b"\x1a\x05\x01\x90", data=width_bytes)
         return len(reply) > 0
 
-    def set_data_mode(self, enable: bool, filter: int = 1) -> bool:
+    def set_data_mode(self, enable: bool, new_filter: int = 1) -> bool:
         """
         Sets the data mode.
 
@@ -543,13 +534,13 @@ class IC7300(DeviceBase):
         Raises:
             ValueError: If the filter is not within the valid range (1 to 3)
         """
-        if not (1 <= filter <= 3):
+        if not (1 <= new_filter <= 3):
             raise ValueError("Filter must be between 1 and 3")
 
         value = 1 if enable else 0
         if not enable:
-            filter = 0
-        reply = self.utils.send_command(b"\x1a\x06", data=bytes([value, filter]))
+            new_filter = 0
+        reply = self.utils.send_command(b"\x1a\x06", data=bytes([value, new_filter]))
         return len(reply) > 0
 
     def set_vox_delay(self, delay: int) -> bool:
@@ -596,7 +587,7 @@ class IC7300(DeviceBase):
         """
         Starts scanning, different types available according to the sub command
 
-        Note: 
+        Note:
             if no memories are programmed, and the memory mode is invoked,
             an exception is returned
         """
@@ -985,6 +976,7 @@ class IC7300(DeviceBase):
             raise ValueError("Value must be between 0 and 3")
         reply = self.utils.send_command(b"\x1a\x05\x01\x88", data=bytes([skip_time]))
         return len(reply) > 0
+
 
 # Required attributes for plugin discovery
 device_type = DeviceType.IC_7300
