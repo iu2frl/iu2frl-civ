@@ -524,7 +524,7 @@ class GenericDevice(DeviceBase):
         reply = self.utils.send_command(b"\x27\x00")
         return reply
 
-    def set_scope_mode(self, fixed_mode: bool = False):
+    def set_scope_mode_fixed(self, fixed_mode: bool = False):
         """Sets the scope mode, True for Fixed, False for Center"""
         if fixed_mode:
             self.utils.send_command(b"\x27\x14", b"\x01")

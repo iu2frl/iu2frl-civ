@@ -417,7 +417,7 @@ class DeviceBase(ABC):
         # command is complex and requires further investigation
         raise NotImplementedError()
 
-    def set_scope_mode(self, fixed_mode: bool = False):
+    def set_scope_mode_fixed(self, fixed_mode: bool = False):
         """Sets the scope mode, True for Fixed, False for Center"""
         raise NotImplementedError()
 

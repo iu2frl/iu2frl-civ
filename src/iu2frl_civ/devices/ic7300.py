@@ -406,19 +406,6 @@ class IC7300(DeviceBase):
         hex_list.append(f"0x{number_as_string[1]}{number_as_string[2]}")
         self.utils.send_command(b"\x08", data=bytes([int(hx, 16) for hx in hex_list]))
 
-    # TODO: test all methods starting from this one
-
-    def start_scan(self, scan_type: ScanMode = ScanMode.SELECT_DF_SPAN_100KHZ):
-        """
-        Starts scanning, different types available according to the sub command
-
-        Note: this always returns some error
-        """
-        if scan_type in ScanMode:
-            self.utils.send_command(b"\x0E", data=scan_type.value)
-        else:
-            raise ValueError("Invalid scan type")
-
     def set_mox(self, transmit: bool):
         """Turns the MOX on or off"""
         if transmit:
@@ -426,12 +413,197 @@ class IC7300(DeviceBase):
         else:
             self.utils.send_command(b"\x1C\x00", b"\x00")
 
-    def set_scan_resume(self, on: bool):
-        """Set scan resume on or off"""
-        if on:
-            self.utils.send_command(b"\x0E\xD3")
+    def set_lcd_brightness(self, level: int):
+        """Sets the LCD brightness, from 0 to 255"""
+        if not (0 <= level <= 255):
+            raise ValueError("Level must be between 0 and 255")
+        level_bytes = self.utils.encode_int_to_icom_bytes(level)
+        self.utils.send_command(b"\x1A\x05\x00\x81", data=level_bytes)
+
+    def set_display_font(self, round: bool = True):
+        """Set the display font"""
+        if round:
+            self.utils.send_command(b"\x1A\x05\x00\x83", b"\x01")
         else:
-            self.utils.send_command(b"\x0E\xD0")
+            self.utils.send_command(b"\x1A\x05\x00\x83", b"\x00")
+
+    def set_scope_mode_fixed(self, fixed_mode: bool = False):
+        """Sets the scope mode, True for Fixed, False for Center"""
+        if fixed_mode:
+            self.utils.send_command(b"\x27\x14", b"\x00\x01")
+        else:
+            self.utils.send_command(b"\x27\x14", b"\x00\x00")
+
+    def set_scope_enabled(self, enabled: bool) -> bool:
+        """
+        Set the Scope ON/OFF status
+        """
+        if enabled:
+            self.utils.send_command(b"\x27\x10", b"\x01")
+        else:
+            self.utils.send_command(b"\x27\x10", b"\x00")
+        return True
+
+    def set_scope_data_out(self, enabled: bool) -> bool:
+        """
+        Enables scope data output to the COM port
+        """
+        if enabled:
+            self.utils.send_command(b"\x27\x11", b"\x01")
+        else:
+            self.utils.send_command(b"\x27\x11", b"\x00")
+        return True
+
+    def set_scope_span(self, span_hz: int):
+        """
+        Sets the scope span in ±Hz
+        Valid values are: 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000
+        Example: 50000 => ±50000Hz => 100000Hz
+        """
+        valid_values = [2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000]
+        if span_hz not in valid_values:
+            raise ValueError(f"Invalid value: {span_hz}")
+        span_bytes = b"\x00"
+        span_bytes += self.utils.encode_frequency(span_hz)
+        self.utils.send_command(b"\x27\x15", data=span_bytes)
+
+    def set_scope_sweep_speed(self, speed: int):
+        """Sets the sweep speed of the scope, 0: fast, 1: mid, 2: slow"""
+        if speed in [0, 1, 2]:
+            data_bytes = b"\x00"
+            data_bytes += bytes([speed])
+            self.utils.send_command(b"\x27\x1A", data=data_bytes)
+        else:
+            raise ValueError("Invalid speed value, must be 0, 1, or 2")
+
+    def memory_copy_to_vfo(self):
+        """Copies memory to VFO"""
+        self.utils.send_command(b"\x0A")
+
+    def set_display_image_type(self, blue_background: bool = True):
+        """Set display image type"""
+        if blue_background:
+            self.utils.send_command(b"\x1A\x05\x00\x82", b"\x01")
+        else:
+            self.utils.send_command(b"\x1A\x05\x00\x82", b"\x00")
+
+    def memory_clear(self):
+        """Clears the current memory"""
+        self.utils.send_command(b"\x0B")
+
+    def set_nb_depth(self, depth: int) -> bool:
+        """
+        Sets the NB depth.
+
+        Args:
+            depth (int): The NB depth (1-10).
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+            ValueError: If the depth is not within the valid range (1 to 10)
+        """
+        if not (1 <= depth <= 10):
+            raise ValueError("Depth must be between 1 and 10")
+        reply = self.utils.send_command(b"\x1a\x05\x01\x89", data=bytes([depth - 1]))
+        return len(reply) > 0
+
+    def set_nb_width(self, width: int) -> bool:
+        """
+        Sets the NB width.
+
+        Args:
+            width (int): The NB width (1-100).
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+            ValueError: If the width is not within the valid range (1 to 100)
+        """
+        if not (0 <= width <= 100):
+            raise ValueError("Width must be between 0 and 100")
+        width = int(self.utils.convert_to_range(width, 0, 100, 0, 255))
+        width_bytes = self.utils.encode_int_to_icom_bytes(width)
+        reply = self.utils.send_command(b"\x1a\x05\x01\x90", data=width_bytes)
+        return len(reply) > 0
+
+    def set_data_mode(self, enable: bool, filter: int = 1) -> bool:
+        """
+        Sets the data mode.
+
+        Args:
+            enable (bool): True to enable, False to disable.
+            filter (int, optional): The filter to select (1-3). Defaults to 1
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+            ValueError: If the filter is not within the valid range (1 to 3)
+        """
+        if not (1 <= filter <= 3):
+            raise ValueError("Filter must be between 1 and 3")
+
+        value = 1 if enable else 0
+        if not enable:
+            filter = 0
+        reply = self.utils.send_command(b"\x1a\x06", data=bytes([value, filter]))
+        return len(reply) > 0
+
+    def set_vox_delay(self, delay: int) -> bool:
+        """
+        Sets the VOX delay.
+
+        Args:
+            delay (int): The VOX delay in tenths of a second (0-20, representing 0.0 to 2.0 seconds).
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+            ValueError: If the delay is not within the valid range (0 to 20).
+        """
+        if not (0 <= delay <= 20):
+            raise ValueError("Delay must be between 0 and 20")
+        reply = self.utils.send_command(b"\x1a\x05\x01\x91", data=bytes([delay]))
+        return len(reply) > 0
+
+    def set_vox_voice_delay(self, voice_delay: int) -> bool:
+        """
+        Sets the VOX voice delay.
+
+        Args:
+            voice_delay (int): The VOX voice delay.
+                0: OFF
+                1: Short
+                2: Mid.
+                3: Long
+
+        Returns:
+            bool: True if the command was successful, False otherwise.
+
+        Raises:
+            ValueError: If the value is not between 0 and 3
+        """
+        if not (0 <= voice_delay <= 3):
+            raise ValueError("Value must be between 0 and 3")
+        reply = self.utils.send_command(b"\x1a\x05\x01\x92", data=bytes([voice_delay]))
+        return len(reply) > 0
+
+    def start_scan(self, scan_type: ScanMode = ScanMode.SELECT_DF_SPAN_100KHZ):
+        """
+        Starts scanning, different types available according to the sub command
+
+        Note: 
+            if no memories are programmed, and the memory mode is invoked,
+            an exception is returned
+        """
+        if scan_type in ScanMode:
+            self.utils.send_command(b"\x0E", data=scan_type.value)
+        else:
+            raise ValueError("Invalid scan type")
 
     def set_scan_speed(self, high: bool):
         """Sets the scan speed"""
@@ -439,6 +611,46 @@ class IC7300(DeviceBase):
             self.utils.send_command(b"\x1A\x05\x01\x78", b"\x01")
         else:
             self.utils.send_command(b"\x1A\x05\x01\x78", b"\x00")
+
+    def set_scope_reference_level(self, level: float):
+        """Sets the scope reference level, range is -20.0 to +20.0 dB in 0.5 dB steps"""
+        if not (-20.0 <= level <= 20.0):
+            raise ValueError("Level must be between -20.0 and +20.0 dB")
+        if level % 0.5 != 0:
+            raise ValueError("Level must be in 0.5 dB increments")
+
+        # Convert the level to the required format
+        level_bytes = b"\x00"
+        level_bytes += self.utils.encode_int_to_icom_bytes(abs(level * 100))
+        if level >= 0:
+            level_bytes += b"\x00"
+        else:
+            level_bytes += b"\x01"
+
+        self.utils.send_command(b"\x27\x19", data=level_bytes)
+
+    def set_scope_vbw(self, wide: bool = True):
+        """Sets the scope VBW (Video Band Width), True for wide, false for narrow"""
+        if wide:
+            self.utils.send_command(b"\x27\x1D", b"\x00\x01")
+        else:
+            self.utils.send_command(b"\x27\x1D", b"\x00\x00")
+
+    def set_scope_waterfall_display(self, on: bool):
+        """Turns the waterfall display on or off for the scope"""
+        if on:
+            self.utils.send_command(b"\x1A\x05\x01\x07", b"\x01")
+        else:
+            self.utils.send_command(b"\x1A\x05\x01\x07", b"\x00")
+
+    # TODO: test all methods starting from this one
+
+    def set_scan_resume(self, on: bool):
+        """Set scan resume on or off"""
+        if on:
+            self.utils.send_command(b"\x0E\xD3")
+        else:
+            self.utils.send_command(b"\x0E\xD0")
 
     def set_speech_synthesizer(self, speech_type: int = 1):
         """
@@ -487,96 +699,19 @@ class IC7300(DeviceBase):
     def memory_write(self):
         """Write to memory, implementation is very complex due to the large amount of data"""
         # Requires memory address, frequency, mode, name, etc.
-        pass
+        raise NotImplementedError()
 
-    def memory_copy_to_vfo(self):
-        """Copies memory to VFO"""
-        self.utils.send_command(b"\x0A")
-
-    def memory_clear(self):
-        """Clears the memory"""
-        self.utils.send_command(b"\x0B")
-
-    def set_lcd_brightness(self, level: int):
-        """Sets the LCD brightness, from 0 to 255"""
-        if not (0 <= level <= 255):
-            raise ValueError("Level must be between 0 and 255")
-        level_bytes = level.to_bytes(2, "little")
-        self.utils.send_command(b"\x1A\x05\x00\x81", data=level_bytes)
-
-    def set_display_image_type(self, type: bool = True):
-        """Set display image type"""
-        if type:
-            self.utils.send_command(b"\x1A\x05\x00\x82", b"\x01")
-        else:
-            self.utils.send_command(b"\x1A\x05\x00\x82", b"\x00")
-
-    def set_display_font(self, round: bool = True):
-        """Set the display font"""
-        if round:
-            self.utils.send_command(b"\x1A\x05\x00\x83", b"\x01")
-        else:
-            self.utils.send_command(b"\x1A\x05\x00\x83", b"\x00")
-
-    def read_scope_waveform_data(self):
-        """Reads the scope waveform data"""
-        # command is complex and requires further investigation
+    def read_scope_waveform_data(self) -> bytes:
+        """
+        Reads the scope waveform data
+        Note, this only works if:
+        - Baudrate is set to 115200bps
+        - Scope Data Output is enabled
+        - Scope is enabled
+        """
+        # Command is complex and requires further investigation
         reply = self.utils.send_command(b"\x27\x00")
-        return reply
-
-    def set_scope_mode(self, fixed_mode: bool = False):
-        """Sets the scope mode, True for Fixed, False for Center"""
-        if fixed_mode:
-            self.utils.send_command(b"\x27\x14", b"\x01")
-        else:
-            self.utils.send_command(b"\x27\x14", b"\x00")
-
-    def set_scope_span(self, span_hz: int):
-        """Sets the scope span in Hz"""
-        # Valid values are 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000
-        span_bytes = b""
-        if span_hz == 2500:
-            span_bytes = b"\x0a\x00\x00\x00"
-        elif span_hz == 5000:
-            span_bytes = b"\x14\x00\x00\x00"
-        elif span_hz == 10000:
-            span_bytes = b"\x27\x10\x00\x00"
-        elif span_hz == 25000:
-            span_bytes = b"\x27\x50\x00\x00"
-        elif span_hz == 50000:
-            span_bytes = b"\x4e\x20\x00\x00"
-        elif span_hz == 100000:
-            span_bytes = b"\x40\x42\x00\x00"
-        elif span_hz == 250000:
-            span_bytes = b"\x64\x74\x00\x00"
-        elif span_hz == 500000:
-            span_bytes = b"\x50\x9c\x00\x00"
-        else:
-            raise ValueError("Invalid scope span")
-        self.utils.send_command(b"\x27\x15", data=span_bytes)
-
-    def set_scope_sweep_speed(self, speed: int):
-        """Sets the sweep speed of the scope, 0: fast, 1: mid, 2: slow"""
-        if speed in [1, 2]:
-            self.utils.send_command(b"\x27\x1A", data=bytes([speed]))
-        else:
-            raise ValueError("Invalid speed value, must be 0, 1, or 2")
-
-    def set_scope_reference_level(self, level: float):
-        """Sets the scope reference level, range is -20.0 to +20.0 dB in 0.5 dB steps"""
-        if not (-20.0 <= level <= 20.0):
-            raise ValueError("Level must be between -20.0 and +20.0 dB")
-        if level % 0.5 != 0:
-            raise ValueError("Level must be in 0.5 dB increments")
-
-        # Convert the level to the required format
-        level_int = int(level * 20)
-        level_bytes = level_int.to_bytes(2, byteorder="little")
-
-        if level >= 0:
-            self.utils.send_command(b"\x27\x19", data=b"\x00" + level_bytes)
-        else:
-            self.utils.send_command(b"\x27\x19", data=b"\x01" + level_bytes)
+        return reply[6:-1]
 
     def set_scope_fixed_edge_frequencies(self, edge_number: int, lower_frequency: int, higher_frequency: int):
         """Sets the fixed edge frequencies for the scope
@@ -596,20 +731,6 @@ class IC7300(DeviceBase):
         data = bytes([edge_number]) + lower_freq_bytes + higher_freq_bytes
 
         self.utils.send_command(b"\x27\x1E", data=data)
-
-    def set_scope_vbw(self, wide: bool = True):
-        """Sets the scope VBW (Video Band Width), True for wide, false for narrow"""
-        if wide:
-            self.utils.send_command(b"\x27\x1D", b"\x01")
-        else:
-            self.utils.send_command(b"\x27\x1D", b"\x00")
-
-    def set_scope_waterfall_display(self, on: bool):
-        """Turns the waterfall display on or off for the scope"""
-        if on:
-            self.utils.send_command(b"\x1A\x05\x01\x07", b"\x01")
-        else:
-            self.utils.send_command(b"\x1A\x05\x01\x07", b"\x00")
 
     def set_memory_name(self, memory_channel: int, name: str):
         """
@@ -744,7 +865,7 @@ class IC7300(DeviceBase):
             bool: True if the command was successful, False otherwise.
 
         Raises:
-           ValueError: If the interval is not within the valid range (1 to 15)
+            ValueError: If the interval is not within the valid range (1 to 15)
         """
         if not (1 <= interval <= 15):
             raise ValueError("Interval must be between 1 and 15 seconds")
@@ -864,106 +985,6 @@ class IC7300(DeviceBase):
             raise ValueError("Value must be between 0 and 3")
         reply = self.utils.send_command(b"\x1a\x05\x01\x88", data=bytes([skip_time]))
         return len(reply) > 0
-
-    def set_nb_depth(self, depth: int) -> bool:
-        """
-        Sets the NB depth.
-
-        Args:
-            depth (int): The NB depth (1-10).
-
-        Returns:
-            bool: True if the command was successful, False otherwise.
-
-        Raises:
-            ValueError: If the depth is not within the valid range (1 to 10)
-        """
-        if not (1 <= depth <= 10):
-            raise ValueError("Depth must be between 1 and 10")
-        reply = self.utils.send_command(b"\x1a\x05\x01\x89", data=bytes([depth - 1]))
-        return len(reply) > 0
-
-    def set_nb_width(self, width: int) -> bool:
-        """
-        Sets the NB width.
-
-        Args:
-            width (int): The NB width (1-100).
-
-        Returns:
-            bool: True if the command was successful, False otherwise.
-
-        Raises:
-            ValueError: If the width is not within the valid range (1 to 100)
-        """
-        if not (1 <= width <= 100):
-            raise ValueError("Width must be between 1 and 100")
-
-        width_bytes = self.utils.encode_2_bytes_value(width - 1)
-        reply = self.utils.send_command(b"\x1a\x05\x01\x90", data=width_bytes)
-        return len(reply) > 0
-
-    def set_vox_delay(self, delay: int) -> bool:
-        """
-        Sets the VOX delay.
-
-        Args:
-            delay (int): The VOX delay in tenths of a second (0-20, representing 0.0 to 2.0 seconds).
-
-        Returns:
-            bool: True if the command was successful, False otherwise.
-
-        Raises:
-            ValueError: If the delay is not within the valid range (0 to 20).
-        """
-        if not (0 <= delay <= 20):
-            raise ValueError("Delay must be between 0 and 20")
-        reply = self.utils.send_command(b"\x1a\x05\x01\x91", data=bytes([delay]))
-        return len(reply) > 0
-
-    def set_vox_voice_delay(self, voice_delay: int) -> bool:
-        """
-        Sets the VOX voice delay.
-
-        Args:
-            voice_delay (int): The VOX voice delay.
-                0: OFF
-                1: Short
-                2: Mid.
-                3: Long
-
-        Returns:
-            bool: True if the command was successful, False otherwise.
-
-        Raises:
-            ValueError: If the value is not between 0 and 3
-        """
-        if not (0 <= voice_delay <= 3):
-            raise ValueError("Value must be between 0 and 3")
-        reply = self.utils.send_command(b"\x1a\x05\x01\x92", data=bytes([voice_delay]))
-        return len(reply) > 0
-
-    def set_data_mode(self, enable: bool, filter: int = 1) -> bool:
-        """
-        Sets the data mode.
-
-        Args:
-            enable (bool): True to enable, False to disable.
-            filter (int, optional): The filter to select (1-3). Defaults to 1
-
-        Returns:
-            bool: True if the command was successful, False otherwise.
-
-        Raises:
-            ValueError: If the filter is not within the valid range (1 to 3)
-        """
-        if not (1 <= filter <= 3):
-            raise ValueError("Filter must be between 1 and 3")
-
-        value = 1 if enable else 0
-        reply = self.utils.send_command(b"\x1a\x06", data=bytes([value, filter]))
-        return len(reply) > 0
-
 
 # Required attributes for plugin discovery
 device_type = DeviceType.IC_7300

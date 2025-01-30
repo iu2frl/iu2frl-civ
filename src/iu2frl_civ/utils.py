@@ -31,6 +31,34 @@ class Utils:
         """
         return value.to_bytes(2, byteorder="little")
 
+    def encode_int_to_icom_bytes(self, value: int) -> bytes:
+        """
+        Encodes an integer value to ICOM-expected bytes.
+        
+        Examples:
+            1    => b'\x00\x01'
+            10   => b'\x00\x10'
+            100  => b'\x01\x00'
+            255  => b'\x02\x55'
+            1234 => b'\x12\x34'
+            9999 => b'\x99\x99'
+            10000 => b'\x01\x00\x00'
+            123456 => b'\x12\x34\x56'
+        """
+        if value < 0:
+            raise ValueError("Negative values are not supported")
+        encoded = []
+        while value > 0:
+            low = value % 10
+            high = (value // 10) % 10
+            encoded.append((high << 4) | low)  # Store as two-digit decimal BCD
+            value //= 100  # Move to the next two-digit pair
+        # Ensure at least two bytes (for numbers < 100)
+        while len(encoded) < 2:
+            encoded.append(0x00)
+        encoded.reverse()
+        return bytes(encoded)
+
     def send_command(self, command: bytes, data=b"", preamble=b"") -> bytes:
         """
         Send a command to the radio transceiver

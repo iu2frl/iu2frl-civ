@@ -2,6 +2,7 @@ import os
 import sys
 import pkgutil
 import importlib
+from pathlib import Path
 from importlib.metadata import entry_points
 from typing import Dict, Type
 import logging
@@ -93,7 +94,11 @@ class DeviceFactory:
         # Locate the package's directory
         package_dir = os.path.join(os.getcwd(), package_path)
         if not os.path.isdir(package_dir):
-            raise ValueError(f"Package path not found: {package_dir}")
+            logger.warning("Cannot find the devices folder in %s (are you using a Jupyter Notebook?), trying with a different approach", package_dir)
+            package_dir = os.path.abspath(f"../{package_path}")
+            logger.warning(package_dir)
+            if not os.path.isdir(package_dir):
+                raise ValueError(f"Package path not found: {package_dir}")
 
         # Iterate over all modules in the package directory
         for finder, module_name, is_pkg in pkgutil.iter_modules([package_dir]):
@@ -110,9 +115,9 @@ class DeviceFactory:
                     # Validate and register the plugin
                     if issubclass(device_class, DeviceBase):
                         cls._device_mapping[device_type] = device_class
-                        logging.debug()("Loaded plugin: %s (%s)", module_name, device_type)
+                        logging.debug("Loaded plugin: %s (%s)", module_name, device_type)
                     else:
-                        logging.debug()("Invalid plugin class in %s: %s", module_name, device_class)
+                        logging.debug("Invalid plugin class in %s: %s", module_name, device_class)
                 else:
                     logging.error("Module %s is missing 'device_type' or 'device_class'", module_name)
             except Exception as e:

@@ -9,12 +9,12 @@ class CivCommandException(BaseException):
     message: str
     error_code: bytes
 
-    def __init__(self, message, error_code):
+    def __init__(self, message: str, error_code: bytes):
         self.message = message
         self.error_code = error_code
 
     def __str__(self):
-        return f"{self.message} (0x{self.error_code:02X})"
+        return f"{self.message} (0x{int.from_bytes(self.error_code, 'big'):02X})"
 
 
 class CivTimeoutException(BaseException):
