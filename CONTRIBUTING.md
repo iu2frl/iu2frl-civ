@@ -1,5 +1,37 @@
 # IU2FRL ICOM CI-V Python Library
 
+## Guidelines for Contributions
+
+Thank you for your interest in contributing to the IU2FRL ICOM CI-V Python Library! The following guidelines will help maintain code quality and ensure smooth collaboration.
+
+### General Contribution Process
+
+- Fork the Repository: Create a fork of the main repository.
+- Create a Branch: Work on a separate branch for your feature or bugfix.
+- Implement Changes: Follow the guidelines outlined in this document for adding new functionality.
+- Write Tests: Ensure all new code is covered by appropriate tests.
+- Run Tests Locally: Verify that all tests pass before submitting a merge request (MR).
+- Submit a Merge Request: Open a merge request, providing a clear description of your changes.
+
+#### Pull Request Guidelines
+
+- Keep PRs focused on a single feature or fix.
+- Ensure tests pass before submitting.
+- Include a concise summary of changes in the PR description.
+
+#### Code Style and Best Practices
+
+- Follow PEP 8 for Python code styling.
+- Use meaningful commit messages.
+- Maintain consistency with existing code structures.
+- Keep functions and classes well-documented (docstrings are mandatory).
+
+## Reporting Issues
+
+- Before reporting a bug, check open issues to avoid duplicates.
+- Provide clear reproduction steps and logs when applicable.
+- Include environment details (Python version, OS, etc.).
+
 ## Developers instructions
 
 This chapter covers the steps required for developers to add new components to this library. Please review all the points before starting editing the library and submitting a MR.
@@ -42,8 +74,8 @@ class DeviceType(Enum):
     Generic = 0
     IC_706_MK2 = 1
     NewDevice = 99  # New device added here
- 
- ...
+
+ [...]
 ```
 
 #### 2. Create a new Device class
@@ -169,3 +201,5 @@ Before sending the merge request, please try to build the package locally and ma
 4. Install the package that was just built: `pip install ./dist/iu2frl_civ-0.0.0.tar.gz`
 5. Test the package using the test code in the `tests/fake.py` file (the script will now use the newly built package)
 6. Test the package using the code in the test file you just created
+
+We appreciate your contributions and look forward to collaborating with you!

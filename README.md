@@ -69,7 +69,7 @@ Some sample commands are available in the `tests` folder.
 
 ## Developer info
 
-Any help is welcome to either add more devices or improve existing ones, please see the developers section, accessible via [relative link](./docs/developers.md) or [GitHub Link](https://github.com/iu2frl/iu2frl-civ/blob/main/docs/developers.md)
+Any help is welcome to either add more devices or improve existing ones, please see the developers section, accessible via [relative link](./CONTRIBUTING.md) or [GitHub Link](https://github.com/iu2frl/iu2frl-civ/blob/main/CONTRIBUTING.md)
 
 ## Project info
 
