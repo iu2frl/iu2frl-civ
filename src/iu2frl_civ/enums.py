@@ -83,3 +83,10 @@ class TuningStep(Enum):
     TS_20KHz = b"\x07"
     TS_25KHz = b"\x08"
     TS_100KHz = b"\x09"
+
+class ToneType(Enum):
+    """Tone type for the transceiver"""
+
+    OFF = 0
+    TONE = 1
+    TSQL = 2

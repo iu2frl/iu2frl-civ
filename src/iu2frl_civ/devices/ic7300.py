@@ -8,7 +8,7 @@ import logging
 import datetime
 import time
 
-from ..enums import OperatingMode, SelectedFilter, VFOOperation, ScanMode, DeviceType
+from ..enums import OperatingMode, SelectedFilter, VFOOperation, ScanMode, DeviceType, ToneType
 from ..device_base import DeviceBase
 from ..utils import Utils
 
@@ -18,9 +18,29 @@ logger = logging.getLogger("iu2frl-civ")
 class IC7300(DeviceBase):
     """Create a CI-V object to interact with a generic the radio transceiver"""
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    valid_rpt_tones = [67.0, 69.3, 71.9, 74.4, 77.0, 79.7, 82.5, 85.4, 88.5, 91.5, 94.8, 97.4, 100.0, 103.5, 107.2, 110.9, 114.8, 118.8, 123.0, 127.3, 131.8, 136.5, 141.3, 146.2, 151.4, 156.7, 162.2, 167.9, 173.8, 179.9, 186.2, 192.8, 203.5, 210.7, 218.1, 225.7, 233.6, 241.8, 250.3, 254.1]
+    allowed_memory_Name_characters = [
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+        '!', '#', '$', '%', '&', '\\', '?', '"', '\'', '`', '^', '+', '-', '*', '/', '.', ',', ':', ';', '=', '<', '>', '(', ')', '[', ']', '{', '}', '|', '_', '~', '@', ' '
+    ]
+    memory_keyer_characters = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',  # Numeri
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', # Lettere maiuscole
+        ' ',  # Spazio (word space)
+        '/',  # Symbol
+        '?',  # Symbol
+        ',',   # Symbol
+        '.',   # Symbol
+        '@',   # Symbol
+        '^',   # Symbol
+        '*'
+    ]
 
+    def __init__(self, *args, **kwargs) -> None:
+        """Initialize the IC7300 object"""
+        super().__init__(*args, **kwargs)
         self.utils = Utils(self._ser, self.transceiver_address, self.controller_address, self._read_attempts, debug=self.debug, fake=self.fake)
 
     def power_on(self) -> bytes:
@@ -658,7 +678,10 @@ class IC7300(DeviceBase):
 
         encoded_text = channel.to_bytes(1, 'big')
         for char in text:
-              encoded_text += bytes([ord(char)])
+            if char in self.memory_keyer_characters:
+                encoded_text += bytes([ord(char)])
+            else:
+                raise ValueError(f"Invalid character: {char}")
         
         command = b'\x1a\x02'
 
@@ -801,11 +824,6 @@ class IC7300(DeviceBase):
         raise NotImplementedError()
         reply = self.utils.send_command(b"\x02")
         return reply
-
-    def memory_write(self):
-        """Write to memory, implementation is very complex due to the large amount of data"""
-        # Requires memory address, frequency, mode, name, etc.
-        raise NotImplementedError()
 
     def read_scope_waveform_data(self) -> bytes:
         """
@@ -1090,6 +1108,120 @@ class IC7300(DeviceBase):
         if not (0 <= skip_time <= 3):
             raise ValueError("Value must be between 0 and 3")
         reply = self.utils.send_command(b"\x1a\x05\x01\x88", data=bytes([skip_time]))
+        return len(reply) > 0
+
+    def set_memory(
+        self,
+        memory_channel: int,
+        frequency_hz: int,
+        operating_mode: OperatingMode,
+        rtx_filter: SelectedFilter,
+        memory_name: str,
+        data_mode: bool = False, # 0=OFF, 1=ON
+        tone_type: ToneType = ToneType.OFF, #0=OFF, 1=TONE, 2=TSQL
+        repeater_tone: float = 0,
+        tone_squelch: float = 0,
+        memory_setting: int = 0 #0=OFF, 1=☆1, 2=☆2, 3=☆3
+    ):
+        """
+        Writes data to a memory channel of the transceiver.
+
+        Args:
+            self: An instance of the radio class.
+            memory_channel: The memory channel number (1-99).
+            frequency_hz: The operating frequency in Hz.
+            operating_mode: The operating mode (OperatingMode enum).
+            filter: The selected filter (SelectedFilter enum).
+            memory_name: The name of the memory (max 10 characters).
+            data_mode: 0 for data mode OFF or 1 for data mode ON
+            tone_type: 0 for OFF, 1 for TONE, 2 for TSQL
+            repeater_tone: The repeater tone frequency
+            tone_squelch: The tone squelch frequency
+            memory_setting: 0 for OFF, 1 for ☆1, 2 for ☆2, 3 for ☆3
+        """
+
+        if not 1 <= memory_channel <= 99:
+            raise ValueError("Memory channel must be between 1 and 99")
+
+        # Format memory channel
+        memory_channel_str = f"{memory_channel:04d}" #aggiunge zeri iniziali
+
+        # Validate frequency
+        if not 10_000_000 <= frequency_hz <= 74_800_000:
+            raise ValueError("Frequency must be between 10,000,000 and 74,800,000 Hz")
+
+        # Convert frequency to bytes
+        frequency_bytes = self.utils.encode_frequency(frequency_hz)
+
+        # Validate memory setting
+        if memory_setting not in [0, 1, 2, 3]:
+            raise ValueError("Invalid star memory setting")
+
+        # Convert operating mode and filter to bytes
+        mode_byte = bytes([operating_mode.value])
+        filter_byte = bytes([rtx_filter.value])
+
+        # Handle data mode and tone type settings
+        data_tone_byte = bytes([(int(data_mode) << 4) | (tone_type.value)]) # combina data mode e tone type
+
+        # Validate repeater tone and tone squelch
+        if repeater_tone not in self.valid_rpt_tones:
+            raise ValueError("Invalid repeater tone")
+        if tone_squelch not in self.valid_rpt_tones:
+            raise ValueError("Invalid tone squelch")
+        
+        # Convert repeater and squelch tones to bytes        
+        repeater_bytes = self.utils.encode_int_to_icom_bytes(int(repeater_tone * 10))
+        repeater_bytes = bytes([0]) * (3 - len(repeater_bytes)) + repeater_bytes  # pad with leading zeros to 3 bytes
+
+        squelch_bytes = self.utils.encode_int_to_icom_bytes(int(tone_squelch * 10))
+        squelch_bytes = bytes([0]) * (3 - len(squelch_bytes)) + squelch_bytes  # pad with leading zeros to 3 bytes
+        
+        # Convert memory name to bytes
+        if len(memory_name) > 10:
+            raise ValueError("Memory name must be 10 characters or less")
+        # Validate if all characters are in the allowed list
+        for char in memory_name:
+            if char not in self.allowed_memory_Name_characters:
+                raise ValueError(f"Invalid character '{char}' in memory name")
+
+        memory_name_bytes = b""
+        for char in memory_name:
+            memory_name_bytes += bytes([ord(char)]) #converte i caratteri in ascii
+
+        # Pad the memory name with spaces if less than 10 characters
+        memory_name_bytes += b' ' * (10 - len(memory_name))
+
+        # Format the full command data
+        command_data = (
+            bytes([int(memory_channel_str[0:2])])
+            + bytes([int(memory_channel_str[2:4])])
+            + bytes([memory_setting]) # star
+            + frequency_bytes
+            + mode_byte
+            + filter_byte
+            + data_tone_byte
+            + repeater_bytes
+            + squelch_bytes
+            + memory_name_bytes
+        )
+        # Send the command
+        reply = self.utils.send_command(b'\x1a\x00', data=command_data)
+        return len(reply) > 0
+
+    def clear_memory(self, memory_channel: int):
+        """
+        Clears the memory channel.
+
+        Args:
+            memory_channel: The memory channel number (1-99).
+        """
+        if not 1 <= memory_channel <= 99:
+            raise ValueError("Memory channel must be between 1 and 99")
+        
+        command_data = b'\xFF' + memory_channel.to_bytes(2, 'big')
+        
+        reply = self.utils.send_command(b'\x1a\x00', data=command_data)
         return len(reply) > 0
 
 # Required attributes for plugin discovery
