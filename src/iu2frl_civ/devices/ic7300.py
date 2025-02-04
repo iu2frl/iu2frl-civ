@@ -1195,14 +1195,14 @@ class IC7300(DeviceBase):
             raise ValueError("Invalid repeater tone")
         if tone_squelch not in self.valid_rpt_tones:
             raise ValueError("Invalid tone squelch")
-        
+
         # Convert repeater and squelch tones to bytes        
         repeater_bytes = self.utils.encode_int_to_icom_bytes(int(repeater_tone * 10))
         repeater_bytes = bytes([0]) * (3 - len(repeater_bytes)) + repeater_bytes  # pad with leading zeros to 3 bytes
 
         squelch_bytes = self.utils.encode_int_to_icom_bytes(int(tone_squelch * 10))
         squelch_bytes = bytes([0]) * (3 - len(squelch_bytes)) + squelch_bytes  # pad with leading zeros to 3 bytes
-        
+
         # Convert memory name to bytes
         if len(memory_name) > 10:
             raise ValueError("Memory name must be 10 characters or less")
@@ -1231,7 +1231,7 @@ class IC7300(DeviceBase):
             + squelch_bytes
             + memory_name_bytes
         )
-        
+
         # Send the command
         reply = self.utils.send_command(b'\x1a\x00', data=command_data)
         return len(reply) > 0
