@@ -1,11 +1,9 @@
 """Sample code to show how the library works"""
 
-import time
-
 try:
     # Import the library installed using pip
     from iu2frl_civ.device_factory import DeviceFactory
-    from iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
+    from iu2frl_civ.enums import DeviceType
     from iu2frl_civ.exceptions import CivTimeoutException
 
     print("Using installed library")
@@ -17,7 +15,7 @@ except ImportError:
     sys.path.append(str(Path(__file__).parent.parent))
     from src.iu2frl_civ.device_factory import DeviceFactory
     from src.iu2frl_civ.exceptions import CivTimeoutException
-    from src.iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
+    from src.iu2frl_civ.enums import DeviceType
 
     print("Using local library")
 
