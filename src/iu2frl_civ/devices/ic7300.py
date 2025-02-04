@@ -634,6 +634,67 @@ class IC7300(DeviceBase):
         else:
             self.utils.send_command(b"\x1A\x05\x01\x07", b"\x00")
 
+    def set_memory_keyer_message(self, channel: int, text: str) -> bool:
+        """
+        Sends a message to the radio transceiver's memory keyer.
+            channel (int): Memory channel number (1-8) where the message will be stored.
+            text (str): Message text to store, using ASCII characters as specified in the manual.
+                    Special characters:
+                    - "^": Send without spaces between characters
+                    - "*": Insert contest number (can only be used in one channel)
+            bool: True if the message was sent successfully, False otherwise
+        Raises:
+            ValueError: If channel number is not between 1 and 8
+        Examples:
+            >>> radio.send_memory_keyer_message(1, "CQ TEST IU2FRL") 
+            True
+            >>> radio.send_memory_keyer_message(2, "5NN*")  # Contest message with number
+            True
+        """
+        if not 1 <= channel <= 8:
+            raise ValueError("Channel number must be between 1 and 8")
+
+        encoded_text = channel.to_bytes(1, 'big')
+        for char in text:
+              encoded_text += bytes([ord(char)])
+        
+        command = b'\x1a\x02'
+
+        reply = self.utils.send_command(command, data=encoded_text)
+    
+        if len(reply) > 0:
+            return True
+        else:
+            return False
+    
+    def read_memory_keyer_message(self, channel: int) -> bytes:
+        """
+        Read the content of a memory keyer channel.
+        This function retrieves the stored text from one of the eight memory keyer channels
+        of the IC-7300 transceiver.
+        Args:
+            channel (int): The memory keyer channel number (1-8)
+        Returns:
+            str: The ASCII decoded content of the memory keyer channel,
+                 or None if no data is received
+        Raises:
+            ValueError: If channel number is not between 1 and 8
+        Example:
+            >>> radio.read_memory_keyer_content(1)
+            'CQ CQ DE IU2FRL'
+        """
+        if not 1 <= channel <= 8:
+            raise ValueError("Il canale deve essere un numero tra 1 e 8")
+
+        channel_bytes = channel.to_bytes(1, 'big')
+
+        reply = self.utils.send_command(b'\x1a\x02', data=channel_bytes)
+    
+        if len(reply) > 0:
+            return reply[7:-2].decode('ascii').strip()
+        
+        return None
+
     # TODO: test all methods starting from this one
 
     def set_scan_resume(self, on: bool):
@@ -976,7 +1037,6 @@ class IC7300(DeviceBase):
             raise ValueError("Value must be between 0 and 3")
         reply = self.utils.send_command(b"\x1a\x05\x01\x88", data=bytes([skip_time]))
         return len(reply) > 0
-
 
 # Required attributes for plugin discovery
 device_type = DeviceType.IC_7300
