@@ -500,7 +500,7 @@ class IC7300(DeviceBase):
         else:
             self.utils.send_command(b"\x1A\x05\x00\x82", b"\x00")
 
-    def memory_clear(self):
+    def clear_current_memory(self):
         """Clears the current memory"""
         self.utils.send_command(b"\x0B")
 
@@ -719,6 +719,21 @@ class IC7300(DeviceBase):
             return reply[7:-2].decode('ascii').strip()
         
         return None
+
+    def clear_memory(self, memory_channel: int):
+        """
+        Clears the specified memory channel.
+
+        Args:
+            memory_channel: The memory channel number (1-99).
+        """
+        if not 1 <= memory_channel <= 99:
+            raise ValueError("Memory channel must be between 1 and 99")
+        
+        command_data = memory_channel.to_bytes(2, 'big') + b'\xFF' 
+        
+        reply = self.utils.send_command(b'\x1a\x00', data=command_data)
+        return len(reply) > 0
 
     def sync_clock(self, utc: bool = False):
         """
@@ -1124,20 +1139,31 @@ class IC7300(DeviceBase):
         memory_setting: int = 0 #0=OFF, 1=☆1, 2=☆2, 3=☆3
     ):
         """
-        Writes data to a memory channel of the transceiver.
-
+        Sets a memory channel with specified parameters on the IC-7300.
+        
         Args:
-            self: An instance of the radio class.
-            memory_channel: The memory channel number (1-99).
-            frequency_hz: The operating frequency in Hz.
-            operating_mode: The operating mode (OperatingMode enum).
-            filter: The selected filter (SelectedFilter enum).
-            memory_name: The name of the memory (max 10 characters).
-            data_mode: 0 for data mode OFF or 1 for data mode ON
-            tone_type: 0 for OFF, 1 for TONE, 2 for TSQL
-            repeater_tone: The repeater tone frequency
-            tone_squelch: The tone squelch frequency
-            memory_setting: 0 for OFF, 1 for ☆1, 2 for ☆2, 3 for ☆3
+            memory_channel (int): Memory channel number (1-99)
+            frequency_hz (int): Frequency in Hz (10,000,000 - 74,800,000)
+            operating_mode (OperatingMode): Operating mode enum value
+            rtx_filter (SelectedFilter): Selected filter enum value 
+            memory_name (str): Memory name (max 10 characters)
+            data_mode (bool, optional): Data mode enabled. Defaults to False.
+            tone_type (ToneType, optional): Tone type (OFF/TONE/TSQL). Defaults to ToneType.OFF.
+            repeater_tone (float, optional): Repeater tone frequency. Defaults to 0.
+            tone_squelch (float, optional): Tone squelch frequency. Defaults to 0.
+            memory_setting (int, optional): Star memory setting (0=OFF,1=☆1,2=☆2,3=☆3). Defaults to 0.
+        
+        Returns:
+            bool: True if command was successful, False otherwise
+        
+        Raises:
+            ValueError: If memory channel is not 1-99
+            ValueError: If frequency is not within valid range
+            ValueError: If memory setting is invalid
+            ValueError: If repeater tone is invalid
+            ValueError: If tone squelch is invalid
+            ValueError: If memory name is longer than 10 characters
+            ValueError: If memory name contains invalid characters
         """
 
         if not 1 <= memory_channel <= 99:
@@ -1205,22 +1231,8 @@ class IC7300(DeviceBase):
             + squelch_bytes
             + memory_name_bytes
         )
+        
         # Send the command
-        reply = self.utils.send_command(b'\x1a\x00', data=command_data)
-        return len(reply) > 0
-
-    def clear_memory(self, memory_channel: int):
-        """
-        Clears the memory channel.
-
-        Args:
-            memory_channel: The memory channel number (1-99).
-        """
-        if not 1 <= memory_channel <= 99:
-            raise ValueError("Memory channel must be between 1 and 99")
-        
-        command_data = b'\xFF' + memory_channel.to_bytes(2, 'big')
-        
         reply = self.utils.send_command(b'\x1a\x00', data=command_data)
         return len(reply) > 0
 

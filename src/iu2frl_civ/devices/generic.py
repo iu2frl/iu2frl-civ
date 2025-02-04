@@ -487,7 +487,7 @@ class GenericDevice(DeviceBase):
         else:
             self.utils.send_command(b"\x1A\x05\x00\x82", b"\x00")
 
-    def memory_clear(self):
+    def clear_current_memory(self):
         """Clears the current memory"""
         self.utils.send_command(b"\x0B")
 

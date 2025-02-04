@@ -109,7 +109,7 @@ class IC706MKII(DeviceBase):
         """Copies memory to VFO"""
         self.utils.send_command(b"\x0A")
 
-    def memory_clear(self):
+    def clear_current_memory(self):
         """Clears the memory"""
         self.utils.send_command(b"\x0B")
 

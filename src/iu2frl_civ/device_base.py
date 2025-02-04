@@ -396,7 +396,7 @@ class DeviceBase(ABC):
         """Copies memory to VFO"""
         raise NotImplementedError()
 
-    def memory_clear(self):
+    def clear_current_memory(self):
         """Clears the memory"""
         raise NotImplementedError()
 
