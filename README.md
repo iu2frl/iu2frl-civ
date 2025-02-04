@@ -64,6 +64,7 @@ Some commands have an expected value to be returned (like the `device.read_opera
 Some sample commands are available in the `tests` folder.
 
 - `ic7300.py`: A simple test script that demonstrates how to use the library to communicate with the IC-7300 transceiver.
+- `ic7300_clock.py`: A simple script to set the clock of the IC-7300 transceiver by syncing to the PC.
 - `ic706_mkii.py`: A simple test script that demonstrates how to use the library to communicate with the IC-706 MKII transceiver.
 - `fake_generic.py`: A simple test script that fakes a connection to transceiver, used to validate builds.
 
