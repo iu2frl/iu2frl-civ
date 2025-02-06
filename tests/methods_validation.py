@@ -13,8 +13,9 @@ try:
     # Import the library installed using pip
     from iu2frl_civ.device_factory import DeviceFactory
     from iu2frl_civ.enums import DeviceType
+    import importlib.metadata
 
-    print("Calling test using installed library")
+    print(f"Calling test using installed library, version: {importlib.metadata.version("iu2frl_civ")}")
 except ImportError:
     # Use this block if working with source code
     from pathlib import Path
