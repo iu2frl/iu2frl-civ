@@ -41,6 +41,8 @@ def main():
         except CivTimeoutException:
             pass
     print()
+    print("Setting time")
+    radio.sync_clock(utc=True)
     print("Setting transceiver frequency and mode")
     print(f"- Transceiver address: {transceiver_address}")
     new_frequency = 28202000

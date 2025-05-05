@@ -5,6 +5,8 @@ This class was built using the section 19 of the ICOM IC-7300 User Manual
 
 from typing import Tuple
 import logging
+import datetime
+import time
 
 from ..enums import OperatingMode, SelectedFilter, VFOOperation, ScanMode, DeviceType
 from ..device_base import DeviceBase
@@ -642,6 +644,58 @@ class GenericDevice(DeviceBase):
             self.utils.send_command(b"\x1A\x05\x01\x07", b"\x01")
         else:
             self.utils.send_command(b"\x1A\x05\x01\x07", b"\x00")
+
+    def sync_clock(self, utc: bool = False):
+        """
+        Synchronizes the radio's clock with the PC's time.
+
+        Args:
+            utc: If True, sets the clock to UTC, otherwise uses local time.
+        """
+        if utc:
+            now = datetime.datetime.now(datetime.timezone.utc)
+        else:
+            now = datetime.datetime.now()
+
+        # Set the time
+        formatted_date = (now.year * 10000) + (now.month * 100) + now.day
+        date_bytes = self.utils.encode_int_to_icom_bytes(formatted_date)
+        self.utils.send_command(b'\x1a\x05\x00\x94', data=date_bytes)
+
+        # Set the date
+        time_str = now.hour * 100 + now.minute
+        time_bytes = self.utils.encode_int_to_icom_bytes(time_str)
+        self.utils.send_command(b'\x1a\x05\x00\x95', data=time_bytes)
+
+        if not utc:
+            # Calculate UTC offset
+            utc_offset_seconds = int(time.timezone) * -1 # UTC+1 = 3600
+            utc_offset_hours = utc_offset_seconds // 3600 # UTC+1 = 1
+            utc_offset_minutes = (utc_offset_seconds % 3600) // 60 # UTC+1 = 0
+
+            # Time offset must be between -14 and +14 hours
+            if utc_offset_hours > 14:
+                utc_offset_hours = 14
+            if utc_offset_hours < -14:
+                utc_offset_hours = -14
+
+            # Determine the direction of the offset
+            if utc_offset_hours >= 0 :
+                direction_byte = b'\x00' # positive
+            else:
+                direction_byte = b'\x01' # negative
+
+            # Convert the offset to the ICOM format
+            offset = utc_offset_hours * 100 + utc_offset_minutes
+            offset_bytes = self.utils.encode_int_to_icom_bytes(abs(offset))
+
+        else:
+            # Set the offset to 0
+            direction_byte = b'\x00'
+            offset_bytes = b'\x00\x00'
+            
+        # Send the offset to the radio
+        self.utils.send_command(b'\x1a\x05\x00\x96', data=offset_bytes+direction_byte)
 
 
 # Required attributes for plugin discovery
