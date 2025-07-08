@@ -48,6 +48,7 @@ It currently includes:
 - `Generic`:  A generic device type (built using the IC-7300 CI-V manual).
 - `IC_706_MK2`: Represents the IC-706 MKII transceiver model.
 - `IC_7300`: Represents the IC-7300 transceiver model.
+- `IC_821H`: Represents the IC-821H transceiver model.
 
 ### Adding a new device to the library
 

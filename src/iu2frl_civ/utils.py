@@ -15,6 +15,7 @@ class Utils:
     _read_attempts: int # Number of read attempts
     fake: bool = False # Fake mode
     debug: bool = False # Debug mode
+    logger: logging.Logger = logger # Logger instance
 
     def __init__(self, serial: Serial, transceiver_address, controller_address, read_attempts, fake=False):
         self._ser = serial
@@ -57,7 +58,7 @@ class Utils:
         encoded.reverse()
         return bytes(encoded)
 
-    def send_command(self, command: bytes, data=b"", preamble=b"") -> bytes:
+    def send_command(self, command: bytes, data: bytes = b"", preamble: bytes = b"", no_reply: bool = False) -> bytes:
         """
         Send a command to the radio transceiver
 
@@ -76,6 +77,10 @@ class Utils:
         logger.debug("Sending command: %s (length: %i)", self.bytes_to_string(command_string), len(command_string))
         # Send the command to the COM port
         self._ser.write(command_string)
+        # Some transceivers (like IC-821H) have no reply for some commands, so we can skip reading the reply
+        if no_reply:
+            logger.debug("No reply expected for this command")
+            return b""
         # Read the response from the transceiver
         reply = ""
         valid_reply = False

@@ -67,10 +67,13 @@ class ScanMode(Enum):
 class VFOOperation(Enum):
     """VFO operation commands"""
 
+    VFO_MODE = None  # VFO mode, no command
     SELECT_VFO_A = b"\x00"  # Select VFO A
     SELECT_VFO_B = b"\x01"  # Select VFO B
     EQUALIZE_VFO_A_B = b"\xA0"  # Equalize VFO A and VFO B
     EXCHANGE_VFO_A_B = b"\xB0"  # Exchange VFO A and VFO B
+    MAIN_BAND = b"\xD0"  # Send commands to the main band
+    SUB_BAND = b"\xD1"  # Send commands to the sub band
 
 
 class TuningStep(Enum):
