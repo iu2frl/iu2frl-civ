@@ -33,6 +33,9 @@ def main() -> int:
     Test all the available devices using the 'fake' mode
     """
 
+    logger = logging.getLogger("iu2frl-civ")
+    logger.setLevel(logging.DEBUG)
+
     failed_tests = 0
     logging.info("Connecting to the transceiver")
 
@@ -41,7 +44,7 @@ def main() -> int:
         logging.info("Testing device type: %s", device_type.name)
         try:
             # Device initialization
-            radio = DeviceFactory.get_repository(radio_address="0x00", device_type=device_type, port="COM10", debug=False, fake=True)
+            radio = DeviceFactory.get_repository(radio_address="0x00", device_type=device_type, port="COM10", fake=True)
 
             logging.info("Connected to the fake transceiver at %s with baudrate %sbps", radio._ser.port, radio._ser.baudrate)
             logging.info("Testing all radio methods")

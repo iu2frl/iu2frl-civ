@@ -21,7 +21,7 @@ Theorically speaking, all ICOM devices implementing the CI-V protocol should be 
 
 ### 3. Creating the device object
 
-- Initialize the target device using `radio = DeviceFactory.get_repository(radio_address="0x94", device_type=DeviceType.Generic, port="COM10", debug=True)`
+- Initialize the target device using `radio = DeviceFactory.get_repository(radio_address="0x94", device_type=DeviceType.Generic, port="COM10")`
 
 > [!TIP]
 > Usage of named arguments (like `radio_address="0x94"`) over positional arguments is **highly recommended** as it provides better support for future releases or library code reviews
@@ -56,6 +56,17 @@ Some commands have an expected value to be returned (like the `device.read_opera
 - `CivCommandException`: something went wrong in the data exchange between the transceiver and the library (probably due to device misconfiguration, faulty cables, etc)
 - `CivTimeoutException`: the communication timed out (something wrong with wiring or connection parameters like port or baudrate)
 
+### 6. Debugging
+
+If some commands are not working as expected, the following code can be used to enable debugging:
+
+```python
+import logging
+
+logger = logging.getLogger("iu2frl-civ")
+logger.setLevel(logging.DEBUG)
+```
+
 ## Sample code
 
 > [!IMPORTANT]
@@ -71,6 +82,63 @@ Some sample commands are available in the `tests` folder.
 ## Developer info
 
 Any help is welcome to either add more devices or improve existing ones, please see the developers section, accessible via [relative link](./CONTRIBUTING.md) or [GitHub Link](https://github.com/iu2frl/iu2frl-civ/blob/main/CONTRIBUTING.md)
+
+## Device-specific documentation
+
+<details>
+<summary>IC-821H</summary>
+
+### General information
+
+- The device seems not to support the `set_operating_frequency` method, so you should use `send_operating_frequency` instead.
+- The device seems not to reply to CI-V commands (or maybe my unit is defective?), so the library does not acknowledge any command.
+- The device is quite slow in responding to commands, so you should use a longer timeout (default is 1 second).
+
+### Programming a memory channel
+
+To program a memory channel, you can use the `set_memory_mode` method. For example, to set 145.600 FM to channel 79:
+
+```python
+print("- Writing 145.600 MHz to memory 79")
+radio.set_memory_mode(79)
+time.sleep(1)
+radio.send_operating_frequency(145600000)
+time.sleep(1)
+radio.set_operating_mode(OperatingMode.FM)
+time.sleep(1)
+radio.memory_write()
+time.sleep(1)
+```
+
+### Scan modes
+
+To scan through memory channels, you first set the channel mode, then you toggle the scan mode:
+
+```python
+print("- Setting memory mode")
+radio.set_memory_mode(i + 1)
+time.sleep(1)
+print("- Starting scan")
+radio.start_scan()
+time.sleep(10)
+print("- Stopping scan")
+radio.stop_scan()
+```
+
+To scan trough frequencyes, first set the frequency mode, then toggle the scan mode:
+
+```python
+print("- Setting VFO A")
+radio.set_vfo_mode(VFOOperation.SELECT_VFO_A)
+time.sleep(1)
+print("- Starting scan")
+radio.start_scan()
+time.sleep(10)
+print("- Stopping scan")
+radio.stop_scan()
+```
+
+</details>
 
 ## Project info
 

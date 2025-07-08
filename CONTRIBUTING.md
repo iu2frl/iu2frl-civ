@@ -48,6 +48,7 @@ It currently includes:
 - `Generic`:  A generic device type (built using the IC-7300 CI-V manual).
 - `IC_706_MK2`: Represents the IC-706 MKII transceiver model.
 - `IC_7300`: Represents the IC-7300 transceiver model.
+- `IC_821_H`: Represents the IC-821H transceiver model.
 
 ### Adding a new device to the library
 
@@ -108,7 +109,6 @@ class NewDevice(DeviceBase):
             self.transceiver_address,
             self.controller_address,
             self._read_attempts, 
-            debug=self.debug, 
             fake=self.fake
         )
 
@@ -201,5 +201,24 @@ Before sending the merge request, please try to build the package locally and ma
 4. Install the package that was just built: `pip install ./dist/iu2frl_civ-0.0.0.tar.gz`
 5. Test the package using the test code in the `tests/fake_generic.py` file (the script will now use the newly built package)
 6. Test the package using the code in the test file you just created
+
+### 6. Removing the manually built package
+
+If you need to remove the manually built package, you can do so by running:
+
+1. Uninstall the package: `pip uninstall iu2frl-civ`
+2. Confirm the uninstallation when prompted.
+
+### 7. Submit a Merge Request
+
+Once you have tested your new device and everything is working as expected, you can submit a merge request (MR) to the main repository.
+
+Please ensure that your MR includes:
+
+- A clear description of the changes made.
+- Any relevant documentation updates.
+- A link (or reference) to the test script you created for the new device.
+
+We will review your MR and provide feedback if necessary. If everything looks good, we will merge your changes into the main branch.
 
 We appreciate your contributions and look forward to collaborating with you!
