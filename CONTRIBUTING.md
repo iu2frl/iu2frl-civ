@@ -108,7 +108,6 @@ class NewDevice(DeviceBase):
             self.transceiver_address,
             self.controller_address,
             self._read_attempts, 
-            debug=self.debug, 
             fake=self.fake
         )
 
