@@ -21,7 +21,7 @@ Theorically speaking, all ICOM devices implementing the CI-V protocol should be 
 
 ### 3. Creating the device object
 
-- Initialize the target device using `radio = DeviceFactory.get_repository(radio_address="0x94", device_type=DeviceType.Generic, port="COM10", debug=True)`
+- Initialize the target device using `radio = DeviceFactory.get_repository(radio_address="0x94", device_type=DeviceType.Generic, port="COM10")`
 
 > [!TIP]
 > Usage of named arguments (like `radio_address="0x94"`) over positional arguments is **highly recommended** as it provides better support for future releases or library code reviews
@@ -55,6 +55,20 @@ Some commands have an expected value to be returned (like the `device.read_opera
 - `NotImplementedError`: the current device does not implement this feature yet
 - `CivCommandException`: something went wrong in the data exchange between the transceiver and the library (probably due to device misconfiguration, faulty cables, etc)
 - `CivTimeoutException`: the communication timed out (something wrong with wiring or connection parameters like port or baudrate)
+
+### 6. Debugging
+
+If some commands are not working as expected, the following code can be used to enable debugging:
+
+```python
+import logging
+
+logger = logging.getLogger("iu2frl-civ")
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(levelname)s:%(name)s:%(message)s'))
+logger.addHandler(handler)
+```
 
 ## Sample code
 

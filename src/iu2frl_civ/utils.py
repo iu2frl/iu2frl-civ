@@ -15,15 +15,13 @@ class Utils:
     _read_attempts: int # Number of read attempts
     fake: bool = False # Fake mode
     debug: bool = False # Debug mode
-    
-    def __init__(self, serial: Serial, transceiver_address, controller_address, read_attempts, debug=False, fake=False):
+
+    def __init__(self, serial: Serial, transceiver_address, controller_address, read_attempts, fake=False):
         self._ser = serial
         self.transceiver_address = transceiver_address
         self.controller_address = controller_address
         self._read_attempts = read_attempts
         self.fake = fake
-        if debug:
-            logger.setLevel(logging.DEBUG)
 
     def encode_2_bytes_value(self, value: int) -> bytes:
         """

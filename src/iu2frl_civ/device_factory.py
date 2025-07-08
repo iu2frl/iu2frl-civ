@@ -156,7 +156,7 @@ class DeviceFactory:
             return True
 
     @staticmethod
-    def get_repository(radio_address: str, device_type: DeviceType = DeviceType.Generic, port="/dev/ttyUSB0", baudrate: int = 19200, debug=False, controller_address="0xE0", timeout=1, attempts=3, fake=False, *args, **kwargs) -> DeviceBase:
+    def get_repository(radio_address: str, device_type: DeviceType = DeviceType.Generic, port="/dev/ttyUSB0", baudrate: int = 19200, controller_address="0xE0", timeout=1, attempts=3, fake=False, *args, **kwargs) -> DeviceBase:
         """Create and return a device repository instance based on the specified device type.
         Args:
             device_type (DeviceType): The type of device to create.
@@ -187,7 +187,6 @@ class DeviceFactory:
             radio_address=radio_address,
             port=port,
             baudrate=baudrate,
-            debug=debug,
             controller_address=controller_address,
             timeout=timeout,
             attempts=attempts,

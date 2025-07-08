@@ -25,7 +25,7 @@ class DeviceBase(ABC):
     fake: bool  # If the device is fake or not (used for testing)
     debug: bool  # If debug mode is enabled
 
-    def __init__(self, radio_address: str, port="/dev/ttyUSB0", baudrate: int = 19200, debug=False, controller_address="0xE0", timeout=1, attempts=3, fake=False):
+    def __init__(self, radio_address: str, port="/dev/ttyUSB0", baudrate: int = 19200, controller_address="0xE0", timeout=1, attempts=3, fake=False):
 
         self._read_attempts = attempts
         # Validate the transceiver address

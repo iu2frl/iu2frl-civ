@@ -21,7 +21,7 @@ class GenericDevice(DeviceBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.utils = Utils(self._ser, self.transceiver_address, self.controller_address, self._read_attempts, debug=self.debug, fake=self.fake)
+        self.utils = Utils(self._ser, self.transceiver_address, self.controller_address, self._read_attempts, fake=self.fake)
 
     def power_on(self) -> bytes:
         """
