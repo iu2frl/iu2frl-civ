@@ -7,6 +7,7 @@ class DeviceType(Enum):
     Generic = 0
     IC_706_MK2 = 1
     IC_7300 = 2
+    IC_821H = 3
 
 
 class OperatingMode(Enum):
