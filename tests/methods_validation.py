@@ -33,6 +33,9 @@ def main() -> int:
     Test all the available devices using the 'fake' mode
     """
 
+    logger = logging.getLogger("iu2frl-civ")
+    logger.setLevel(logging.DEBUG)
+
     failed_tests = 0
     logging.info("Connecting to the transceiver")
 

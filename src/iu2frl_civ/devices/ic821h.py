@@ -176,7 +176,7 @@ class IC821H(DeviceBase):
         Disables split mode.
         """
 
-        self.utils.logger.warning("The `split_off` method is not tested yet, use with caution.")
+        self.utils.logger.warning("The `split_off` method is not tested yet, please report any issues.")
         self.utils.send_command(b"\x0F", b"\x00", no_reply=True)
 
     def split_on(self) -> None:
@@ -184,7 +184,7 @@ class IC821H(DeviceBase):
         Enables split mode.
         """
 
-        self.utils.logger.warning("The `split_on` method is not tested yet, use with caution.")
+        self.utils.logger.warning("The `split_on` method is not tested yet, please report any issues.")
         self.utils.send_command(b"\x0F", b"\x01", no_reply=True)
 
     def offset_read(self) -> int:
@@ -194,11 +194,11 @@ class IC821H(DeviceBase):
         Returns:
             int: The offset frequency in Hz.
         """
-        
-        self.utils.logger.warning("The `offset_read` method is not tested yet, use with caution.")
+
+        self.utils.logger.warning("The `offset_read` method is not tested yet, please report any issues.")
         response = self.utils.send_command(b"\x0C", no_reply=False)
-        return self.utils.decode_frequency(response)
-    
+        return self.utils.decode_frequency(response[5:7])
+
     def offset_write(self, frequency_hz: int | float):
         """
         Writes the offset frequency.
