@@ -791,6 +791,7 @@ class IC7300(DeviceBase):
 
     def set_scan_resume(self, on: bool):
         """Set scan resume on or off"""
+        self.utils.logger.warning(("The method `set_scan_resume` is not tested yet, please report any issues."))
         if on:
             self.utils.send_command(b"\x0E\xD3")
         else:
@@ -805,6 +806,7 @@ class IC7300(DeviceBase):
         level by voice synthesizer
         02 Speech the operating mode by voice synthesizer
         """
+        self.utils.logger.warning(("The method `set_speech_synthesizer` is not tested yet, please report any issues."))
         if speech_type in [1, 2]:
             self.utils.send_command(b"\x13", data=bytes([speech_type]))
         else:
@@ -812,6 +814,7 @@ class IC7300(DeviceBase):
 
     def set_speech_level(self, level: int):
         """Sets the speech level from 0 to 255"""
+        self.utils.logger.warning(("The method `set_speech_level` is not tested yet, please report any issues."))
         if not (0 <= level <= 255):
             raise ValueError("Level must be between 0 and 255")
         level_bytes = level.to_bytes(2, "little")
@@ -819,6 +822,7 @@ class IC7300(DeviceBase):
 
     def set_speech_language(self, english: bool = True):
         """Sets the speech language, True for english, false for japanese"""
+        self.utils.logger.warning(("The method `set_speech_language` is not tested yet, please report any issues."))
         if english:
             self.utils.send_command(b"\x1A\x05\x00\x39", b"\x00")
         else:
@@ -826,6 +830,7 @@ class IC7300(DeviceBase):
 
     def set_speech_speed(self, high: bool = True):
         """Sets the speech speed"""
+        self.utils.logger.warning(("The method `set_speech_speed` is not tested yet, please report any issues."))
         if high:
             self.utils.send_command(b"\x1A\x05\x00\x40", b"\x01")
         else:
@@ -836,6 +841,7 @@ class IC7300(DeviceBase):
         Reads the band edge frequencies.
         This command requires further implementation due to its complex data structure
         """
+        self.utils.logger.warning(("The method `read_band_edge_frequencies` is not implemented yet, help is welcome."))
         raise NotImplementedError()
         reply = self.utils.send_command(b"\x02")
         return reply
@@ -848,6 +854,7 @@ class IC7300(DeviceBase):
         - Scope Data Output is enabled
         - Scope is enabled
         """
+        self.utils.logger.warning(("The method `read_scope_waveform_data` is not implemented yet, please report any issues."))
         # Command is complex and requires further investigation
         reply = self.utils.send_command(b"\x27\x00")
         return reply[6:-1]
@@ -857,6 +864,7 @@ class IC7300(DeviceBase):
         edge_number is 1, 2, or 3
         lower_frequency and higher_frequency are in Hz
         """
+        self.utils.logger.warning(("The method `set_scope_fixed_edge_frequencies` is not tested yet, please report any issues."))
         if edge_number not in [1 - 3]:
             raise ValueError("Edge number must be 1, 2, or 3")
 
@@ -876,6 +884,7 @@ class IC7300(DeviceBase):
         Sets the memory name, max 10 characters
         memory_channel 1 to 99
         """
+        self.utils.logger.warning(("The method `set_memory_name` is not tested yet, please report any issues."))
         if not (1 <= memory_channel <= 99):
             raise ValueError("Memory channel must be between 1 and 99")
         if len(name) > 10:
@@ -899,18 +908,21 @@ class IC7300(DeviceBase):
 
     def set_rtty_mark_frequency(self, frequency: int):
         """Sets the RTTY mark frequency, 0=1275 Hz, 1=1615 Hz, 2=2125 Hz"""
+        self.utils.logger.warning(("The method `set_rtty_mark_frequency` is not tested yet, please report any issues."))
         if frequency not in [1, 2]:
             raise ValueError("Invalid RTTY mark frequency")
         self.utils.send_command(b"\x1A\x05\x00\x36", data=bytes([frequency]))
 
     def set_rtty_shift_width(self, width: int):
         """Sets the RTTY shift width, 0=170 Hz, 1=200 Hz, 2=425 Hz"""
+        self.utils.logger.warning(("The method `set_rtty_shift_width` is not tested yet, please report any issues."))
         if width not in [1, 2]:
             raise ValueError("Invalid RTTY shift width")
         self.utils.send_command(b"\x1A\x05\x00\x37", data=bytes([width]))
 
     def set_rtty_keying_polarity(self, reverse: bool = False):
         """Sets the RTTY keying polarity, True for reverse, False for normal"""
+        self.utils.logger.warning(("The method `set_rtty_keying_polarity` is not tested yet, please report any issues."))
         if reverse:
             self.utils.send_command(b"\x1A\x05\x00\x38", b"\x01")
         else:
@@ -918,6 +930,7 @@ class IC7300(DeviceBase):
 
     def set_rtty_decode_usos(self, on: bool = False):
         """Set RTTY decode USOS"""
+        self.utils.logger.warning(("The method `set_rtty_decode_usos` is not tested yet, please report any issues."))
         if on:
             self.utils.send_command(b"\x1A\x05\x01\x68", b"\x01")
         else:
@@ -925,6 +938,7 @@ class IC7300(DeviceBase):
 
     def set_rtty_decode_newline_code(self, crlf: bool = True):
         """Set RTTY decode new line code"""
+        self.utils.logger.warning(("The method `set_rtty_decode_newline_code` is not tested yet, please report any issues."))
         if crlf:
             self.utils.send_command(b"\x1A\x05\x01\x69", b"\x01")
         else:
@@ -932,6 +946,7 @@ class IC7300(DeviceBase):
 
     def set_rtty_tx_usos(self, on: bool = False):
         """Sets RTTY tx USOS"""
+        self.utils.logger.warning(("The method `set_rtty_tx_usos` is not tested yet, please report any issues."))
         if on:
             self.utils.send_command(b"\x1A\x05\x01\x70", b"\x01")
         else:
@@ -939,6 +954,7 @@ class IC7300(DeviceBase):
 
     def set_rtty_log(self, on: bool = False):
         """Set RTTY log function"""
+        self.utils.logger.warning(("The method `set_rtty_log` is not tested yet, please report any issues."))
         if on:
             self.utils.send_command(b"\x1A\x05\x01\x73", b"\x01")
         else:
@@ -946,6 +962,7 @@ class IC7300(DeviceBase):
 
     def set_rtty_log_file_format(self, html: bool = False):
         """Set the file format for the RTTY log, True for HTML, False for text"""
+        self.utils.logger.warning(("The method `set_rtty_log_file_format` is not tested yet, please report any issues."))
         if html:
             self.utils.send_command(b"\x1A\x05\x01\x74", b"\x01")
         else:
@@ -953,6 +970,7 @@ class IC7300(DeviceBase):
 
     def set_rtty_log_time_stamp(self, on: bool = False):
         """Set RTTY time stamp"""
+        self.utils.logger.warning(("The method `set_rtty_log_time_stamp` is not tested yet, please report any issues."))
         if on:
             self.utils.send_command(b"\x1A\x05\x01\x75", b"\x01")
         else:
@@ -960,6 +978,7 @@ class IC7300(DeviceBase):
 
     def set_rtty_log_time_stamp_local(self, local: bool = True):
         """Set the RTTY Log Time Stamp local or UTC"""
+        self.utils.logger.warning(("The method `set_rtty_log_time_stamp_local` is not tested yet, please report any issues."))
         if local:
             self.utils.send_command(b"\x1A\x05\x01\x76", b"\x00")
         else:
@@ -975,6 +994,7 @@ class IC7300(DeviceBase):
         Returns:
             bool: True if the command was successful, False otherwise.
         """
+        self.utils.logger.warning(("The method `set_rtty_log_frequency_stamp` is not tested yet, please report any issues."))
         value = 1 if enable else 0
         reply = self.utils.send_command(b"\x1a\x05\x01\x77", data=bytes([value]))
         return len(reply) > 0
@@ -989,6 +1009,7 @@ class IC7300(DeviceBase):
         Returns:
             bool: True if the command was successful, False otherwise.
         """
+        self.utils.logger.warning(("The method `set_auto_monitor_voice_memory` is not tested yet, please report any issues."))
         value = 1 if enable else 0
         reply = self.utils.send_command(b"\x1a\x05\x01\x80", data=bytes([value]))
         return len(reply) > 0
@@ -1006,6 +1027,7 @@ class IC7300(DeviceBase):
         Raises:
             ValueError: If the interval is not within the valid range (1 to 15)
         """
+        self.utils.logger.warning(("The method `set_repeat_interval_voice_memory` is not tested yet, please report any issues."))
         if not (1 <= interval <= 15):
             raise ValueError("Interval must be between 1 and 15 seconds")
         reply = self.utils.send_command(b"\x1a\x05\x01\x81", data=bytes([interval]))
@@ -1021,6 +1043,7 @@ class IC7300(DeviceBase):
         Returns:
             bool: True if the command was successful, False otherwise.
         """
+        self.utils.logger.warning(("The method `set_qso_recorder_mode` is not tested yet, please report any issues."))
         value = 0 if tx_rx else 1
         reply = self.utils.send_command(b"\x1a\x05\x01\x82", data=bytes([value]))
         return len(reply) > 0
@@ -1035,6 +1058,7 @@ class IC7300(DeviceBase):
         Returns:
             bool: True if the command was successful, False otherwise.
         """
+        self.utils.logger.warning(("The method `set_qso_recorder_tx_audio` is not tested yet, please report any issues."))
         value = 0 if mic_audio else 1
         reply = self.utils.send_command(b"\x1a\x05\x01\x83", data=bytes([value]))
         return len(reply) > 0
@@ -1049,6 +1073,7 @@ class IC7300(DeviceBase):
         Returns:
             bool: True if the command was successful, False otherwise.
         """
+        self.utils.logger.warning(("The method `set_qso_recorder_squelch_relation` is not tested yet, please report any issues."))
         value = 0 if always_record else 1
         reply = self.utils.send_command(b"\x1a\x05\x01\x84", data=bytes([value]))
         return len(reply) > 0
@@ -1063,6 +1088,7 @@ class IC7300(DeviceBase):
         Returns:
             bool: True if the command was successful, False otherwise.
         """
+        self.utils.logger.warning(("The method `set_qso_record_file_split` is not tested yet, please report any issues."))
         value = 1 if enable else 0
         reply = self.utils.send_command(b"\x1a\x05\x01\x85", data=bytes([value]))
         return len(reply) > 0
@@ -1077,6 +1103,7 @@ class IC7300(DeviceBase):
         Returns:
             bool: True if the command was successful, False otherwise.
         """
+        self.utils.logger.warning(("The method `set_ptt_automatic_recording` is not tested yet, please report any issues."))
         value = 1 if enable else 0
         reply = self.utils.send_command(b"\x1a\x05\x01\x86", data=bytes([value]))
         return len(reply) > 0
@@ -1098,6 +1125,7 @@ class IC7300(DeviceBase):
          Raises:
             ValueError: If the value is not between 0 and 3
         """
+        self.utils.logger.warning(("The method `set_ptt_automatic_recording_rx_audio` is not tested yet, please report any issues."))
         if not (0 <= rx_audio_time <= 3):
             raise ValueError("Value must be between 0 and 3")
         reply = self.utils.send_command(b"\x1a\x05\x01\x87", data=bytes([rx_audio_time]))
@@ -1120,6 +1148,7 @@ class IC7300(DeviceBase):
         Raises:
              ValueError: If the skip time is not within the valid range
         """
+        self.utils.logger.warning(("The method `set_qso_play_skip_time` is not tested yet, please report any issues."))
         if not (0 <= skip_time <= 3):
             raise ValueError("Value must be between 0 and 3")
         reply = self.utils.send_command(b"\x1a\x05\x01\x88", data=bytes([skip_time]))
@@ -1165,6 +1194,8 @@ class IC7300(DeviceBase):
             ValueError: If memory name is longer than 10 characters
             ValueError: If memory name contains invalid characters
         """
+        
+        self.utils.logger.warning(("The method `set_memory` is not tested yet, please report any issues."))
 
         if not 1 <= memory_channel <= 99:
             raise ValueError("Memory channel must be between 1 and 99")
