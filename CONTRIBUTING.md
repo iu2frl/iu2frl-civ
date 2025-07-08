@@ -202,4 +202,23 @@ Before sending the merge request, please try to build the package locally and ma
 5. Test the package using the test code in the `tests/fake_generic.py` file (the script will now use the newly built package)
 6. Test the package using the code in the test file you just created
 
+### 6. Removing the manually built package
+
+If you need to remove the manually built package, you can do so by running:
+
+1. Uninstall the package: `pip uninstall iu2frl-civ`
+2. Confirm the uninstallation when prompted.
+
+### 7. Submit a Merge Request
+
+Once you have tested your new device and everything is working as expected, you can submit a merge request (MR) to the main repository.
+
+Please ensure that your MR includes:
+
+- A clear description of the changes made.
+- Any relevant documentation updates.
+- A link (or reference) to the test script you created for the new device.
+
+We will review your MR and provide feedback if necessary. If everything looks good, we will merge your changes into the main branch.
+
 We appreciate your contributions and look forward to collaborating with you!
