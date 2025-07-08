@@ -8,6 +8,7 @@ Theorically speaking, all ICOM devices implementing the CI-V protocol should be 
 
 - IC-7300 (fw: 1.42)
 - IC-706 MKII
+- IC-821H
 
 ## Usage
 
