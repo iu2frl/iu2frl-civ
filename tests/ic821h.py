@@ -31,7 +31,7 @@ def main():
     """Connect to the transceiver and get some data"""
     print("Connecting to the transceiver")
     # Device initialization
-    radio: ic821h = DeviceFactory.get_repository(radio_address="0x4C", device_type=DeviceType.IC_821H, baudrate=19200, port="COM5", fake=False)
+    radio: ic821h = DeviceFactory.get_repository(radio_address="0x4C", device_type=DeviceType.IC_821_H, baudrate=19200, port="COM5", fake=False)
     # Transceiver commands
     print(f"- Connected to the transceiver at {radio._ser.port} with baudrate {radio._ser.baudrate}bps")
     new_frequency = 144880000

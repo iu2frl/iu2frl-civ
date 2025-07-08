@@ -219,5 +219,5 @@ class IC821H(DeviceBase):
 
 
 # Required attributes for plugin discovery
-device_type = DeviceType.IC_821H
+device_type = DeviceType.IC_821_H
 device_class = IC821H
