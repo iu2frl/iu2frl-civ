@@ -5,17 +5,20 @@ authors = [
 ]
 description = "A small library to communicate with ICOM devices using CI-V protocol"
 readme = "README.md"
-license = { file = "LICENSE" }
+license-files = [ "LICENSE", "CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md", "README.md" ]
 keywords = ["icom", "ci-v", "transceivers", "communication"]
 requires-python = ">=3.8"
 dependencies = [
-    "pyserial >= 3.5"
+    "pyserial == 3.5"
 ]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
 version = "v0.0.0"
@@ -26,7 +29,7 @@ Source = "https://github.com/iu2frl/iu2frl_civ"
 Issues = "https://github.com/iu2frl/iu2frl_civ/issues"
 
 [build-system]
-requires = ["setuptools", "pyserial>=3.5", "wheel"]
+requires = ["setuptools", "pyserial==3.5", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # Define entry points for devices
