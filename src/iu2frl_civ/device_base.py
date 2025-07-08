@@ -43,14 +43,8 @@ class DeviceBase(ABC):
             self._ser = serial.Serial(port, baudrate, timeout=timeout, dsrdtr=False)
         else:
             self._ser = FakeSerial(self.transceiver_address, self.controller_address, baudrate, port)
-        # Configure logging if needed
-        if debug:
-            logging.basicConfig(level=logging.DEBUG)
-        else:
-            sys.tracebacklimit = 0
         # Print some information if debug is enabled
         self.fake = fake
-        self.debug = debug
         logger.debug("Opened port: %s", self._ser.name)
         logger.debug("Baudrate: %s bps", self._ser.baudrate)
 
@@ -218,7 +212,7 @@ class DeviceBase(ABC):
         """
         raise NotImplementedError()
 
-    def set_operating_mode(self, mode: OperatingMode, filter: SelectedFilter = SelectedFilter.FIL1):
+    def set_operating_mode(self, mode: OperatingMode, filter: SelectedFilter | None = SelectedFilter.FIL1):
         """Sets the operating mode and filter."""
         # Command 0x06 with mode and filter data
         raise NotImplementedError()
