@@ -333,6 +333,13 @@ class GenericDevice(DeviceBase):
             return self.utils.linear_interpolate(raw_value, points)
         return -1.0  # Return -1 in case of error
 
+    def read_mox_status(self) -> bool:
+        """Reads the MOX status, returns True if MOX is on"""
+        reply = self.utils.send_command(b"\x1C\x00")
+        if len(reply) == 8:
+            return bool(reply[6])
+        return False
+
     def set_antenna_tuner(self, on: bool):
         """Turns the antenna tuner on or off."""
         if on:
