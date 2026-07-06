@@ -7,6 +7,8 @@ Python library for communicating with iCOM radios using CI-V.
 Theorically speaking, all ICOM devices implementing the CI-V protocol should be compatible, in particular, the following devices were tested:
 
 - IC-7300 (fw: 1.42)
+- IC-7300 MKII (fw: 1.02)
+  - Tested using the IC-7300 module
 - IC-706 MKII
 - IC-821H
 
