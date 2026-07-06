@@ -281,6 +281,10 @@ class DeviceBase(ABC):
         """
         raise NotImplementedError()
 
+    def read_mox_status(self) -> bool:
+        """Reads the MOX status, returns True if MOX is on"""
+        raise NotImplementedError()
+
     def set_antenna_tuner(self, on: bool):
         """Turns the antenna tuner on or off."""
         raise NotImplementedError()
