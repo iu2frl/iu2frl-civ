@@ -1,15 +1,19 @@
-# Import the library installed using pip
-# from iu2frl_civ.device_base import DeviceBase
-# from iu2frl_civ.device_factory import DeviceFactory
-# from iu2frl_civ.enums import DeviceType, OperatingMode
 
 import sys
 from pathlib import Path
+import time
 
-sys.path.append(str(Path(__file__).parent.parent))
-from src.iu2frl_civ.device_factory import DeviceFactory
-from src.iu2frl_civ.exceptions import CivTimeoutException
-from src.iu2frl_civ.enums import DeviceType, OperatingMode, SelectedFilter, VFOOperation, ScanMode
+try:
+    # Import the library installed using pip
+    from iu2frl_civ.device_factory import DeviceFactory
+    from iu2frl_civ.enums import DeviceType, OperatingMode
+    print("Imported iu2frl_civ from pip-installed package.")
+except ImportError:
+    sys.path.append(str(Path(__file__).parent.parent))
+    from src.iu2frl_civ.device_factory import DeviceFactory
+    from src.iu2frl_civ.enums import DeviceType, OperatingMode
+    print("Imported iu2frl_civ from local source code.")
+
 
 def chunkstring(string, length):
     """Split a string into chunks of a specified length."""
@@ -35,10 +39,20 @@ def main():
         if text_to_send.lower() == 'exit':
             break
         else:
-            for chunk in chunkstring(text_to_send, 30):  # Split the text into chunks of 30 characters
+            chunked_messages = chunkstring(text_to_send, 30)
+            chunked_messages = list(chunked_messages)  # Convert generator to list to count chunks
+            chunks_count = len(chunked_messages)
+            print(f"Sending {chunks_count} chunks of CW messages...")
+            for i in range(chunks_count):  # Split the text into chunks of 30 characters
                 try:
-                    radio.send_cw_message(chunk)  # Send each chunk as a CW message
-                    
+                    print(f"Sending chunk {i+1}/{chunks_count}: {chunked_messages[i]}")
+                    radio.send_cw_message(chunked_messages[i])  # Send each chunk as a CW message
+                    time.sleep(0.5)
+                    if not radio.read_mox_status():
+                        print("Radio is not transmitting. Please check if the BK IN was activated.")
+                        break
+                    while radio.read_mox_status():
+                        time.sleep(0.1)
                 except Exception as e:
                     print(f"Error sending CW message: {e}")
 
