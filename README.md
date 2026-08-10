@@ -11,6 +11,7 @@ Theorically speaking, all ICOM devices implementing the CI-V protocol should be 
   - Tested using the IC-7300 module
 - IC-706 MKII
 - IC-821H
+- IC-9700 (fw: 1.43)
 
 ## Usage
 
