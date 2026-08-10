@@ -8,6 +8,7 @@ class DeviceType(Enum):
     IC_706_MK2 = 1
     IC_7300 = 2
     IC_821_H = 3
+    IC_9700 = 4
 
 
 class OperatingMode(Enum):
